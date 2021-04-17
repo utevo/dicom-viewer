@@ -1,7 +1,7 @@
-import { Import } from "../dicom/Import";
+import { ImportDicomImage } from "../dicom/ImportDicomImage";
 
 const Home = (): React.ReactElement => {
-  return <Import />;
+  return <ImportDicomImage />;
 };
 
 export default Home;
