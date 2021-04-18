@@ -46,9 +46,37 @@ export const DicomImage_ = {
   },
 };
 
-export interface Frame {
+export interface Image {
   rows: number;
   columns: number;
+
+  type: "grayScale" | "rgb";
+  pixelData: Uint8Array;
+}
+
+export const Image_ = {
+  fromDicomImage(dicomImage: DicomImage): Image {
+    return {
+      rows: dicomImage.rows,
+      columns: dicomImage.columns,
+
+      type: "grayScale",
+      pixelData: dicomImage.pixelData,
+    }
+  }
+}
+
+const ImageData_ = {
+  fromImage(image: Image): ImageData {
+    if (image.type === "grayScale") {
+      const imageData = new ImageData(image.columns, image.rows);
+
+      for (let i = 0; i < imageData.data.length; i += 4) {
+        imageData.data[i + 0] = 255;
+      }
+
+    }
+  }
 }
 
 export enum TransferSyntax {
