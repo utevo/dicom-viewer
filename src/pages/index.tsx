@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { DicomImage, Image_ } from "../dicom/domain";
+import { DicomImage } from "../dicom/domain/DicomImage";
+import { Image_ } from "../dicom/domain/Image";
 import { ImageViewer } from "../dicom/ImageViewer";
 import { ImportDicomImage } from "../dicom/ImportDicomImage";
 

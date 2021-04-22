@@ -1,5 +1,5 @@
 import { parseDicom } from "dicom-parser"
-import { DicomImage, DicomImage_ } from "./domain"
+import { DicomImage, DicomImage_ } from "./domain/DicomImage"
 
 interface Props {
   onImport: (dicomImage: DicomImage) => void

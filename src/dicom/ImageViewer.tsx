@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Image as KonvaImage, Layer, Stage } from "react-konva";
-import { Image, ImageData_ } from "./domain";
+import { Image } from "./domain/Image";
+import { ImageData_ } from "./domain/ImageData";
 
 interface Props {
   image: Image;
@@ -8,29 +9,18 @@ interface Props {
   height: number;
 }
 
-function imageDataToImageElement(imageData: ImageData): HTMLImageElement {
-  const canvas = document.createElement("canvas");
-  const ctx = canvas.getContext("2d");
-  if (ctx == null) {
-    throw new Error("Imposable");
-  }
-  canvas.width = imageData.width;
-  canvas.height = imageData.height;
-  ctx.putImageData(imageData, 0, 0);
-
-  const image = document.createElement("img");
-  image.src = canvas.toDataURL();
-  return image;
-}
-
 export const ImageViewer = ({ image, width, height }: Props): React.ReactElement => {
-  const imageData = ImageData_.fromImage(image);
-  const imageElement = imageDataToImageElement(imageData);
+  const [imageBitmap, setImageBitmap] = useState<ImageBitmap>();
+
+  useEffect(() => {
+    const tmp = async () => setImageBitmap(await createImageBitmap(ImageData_.fromImage(image)));
+    tmp();
+  }, [image]);
 
   return (
     <Stage width={width} height={height}>
       <Layer>
-        <KonvaImage image={imageElement} />
+        <KonvaImage image={imageBitmap} />
       </Layer>
     </Stage>
   );
