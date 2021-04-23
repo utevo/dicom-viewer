@@ -22,6 +22,7 @@ export interface DicomImage {
   windowWidth?: number;
 
   pixelData: Uint8Array;
+  pixelDataVr: "OB" | "OW";
 }
 
 export const DicomImage_ = {
@@ -53,11 +54,7 @@ export const DicomImage_ = {
         throw Error("DicomImage need to have photometricInterpratation");
       })();
 
-    const planarConfigurationValue =
-      dataSet.uint16("x00280006") ??
-      (() => {
-        throw Error("DicomImage need to have planarConfiguration");
-      });
+    const planarConfigurationValue = dataSet.uint16("x00280006") ?? 0;
     const planarConfiguration: PlanarConfiguration | undefined =
       planarConfigurationValue == null
         ? undefined
@@ -103,7 +100,18 @@ export const DicomImage_ = {
     const windowWidth = dataSet.floatString("x00281051");
 
     const pixelDataElement = dataSet.elements.x7fe00010;
-    const pixelData = new Uint8Array(dataSet.byteArray.buffer, pixelDataElement.dataOffset, pixelDataElement.length);
+    const pixelDataVr =
+      pixelDataElement.vr === undefined
+        ? "OB"
+        : ["OB", "OW"].includes(pixelDataElement.vr)
+        ? (pixelDataElement.vr as "OB" | "OW")
+        : (() => {
+            throw Error("Unexpected pixelData VR");
+          })();
+    const pixelData = new Uint8Array(pixelDataElement.length);
+    for (let idx = 0; idx < pixelDataElement.length; idx += 1) {
+      pixelData[idx] = dataSet.byteArray[pixelDataElement.dataOffset + idx]
+    }
 
     return {
       compression,
@@ -127,6 +135,7 @@ export const DicomImage_ = {
       windowWidth,
 
       pixelData,
+      pixelDataVr,
     };
   },
 };
@@ -181,9 +190,9 @@ export const TransferSyntax_ = {
       case TransferSyntax.JPEG2000:
         return [Compression.Jpeg2000, Endianness.LittleEndian];
       case TransferSyntax.JPEGBaseline:
-        return [Compression.JpegBaseline, Endianness.LittleEndian]
-      }
-  }
+        return [Compression.JpegBaseline, Endianness.LittleEndian];
+    }
+  },
 };
 
 export enum Endianness {

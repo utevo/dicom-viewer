@@ -1,5 +1,5 @@
 import { Image } from "react-konva";
-import { Compression, DicomImage } from "./DicomImage";
+import { Compression, DicomImage, PhotometricInterpratation, PixelRepresentation } from "./DicomImage";
 
 export type Image = ImageGrayScale | ImageRGB;
 
@@ -23,38 +23,87 @@ interface DataForImageGrayScale {
   rows: number;
   columns: number;
 
-  bitsAllocated: number;
+  photometricInterpratation: PhotometricInterpratation.Monochrome1 | PhotometricInterpratation.Monochrome2;
+  pixelRepresentation: PixelRepresentation;
 
-  pixelData:
+  bitsAllocated: number;
+  bitsStored: number;
+  highBit: number;
+
+  pixelData: Uint8Array;
+  pixelDataVr: "OB" | "OW";
 }
 
 export const Image_ = {
   fromDicomImage: (dicomImage: DicomImage): Image => {
-    if (dicomImage.compression !== Compression.None) {
-      switch (dicomImage.samplePerPixel) {
-        case 1:
-          return Image_._grayScaleFrom(dicomImage);
-        case 3:
-          if (dicomImage.p)
-
+    if (dicomImage.compression === Compression.None) {
+      if (
+        (dicomImage.photometricInterpratation === PhotometricInterpratation.Monochrome1 ||
+          dicomImage.photometricInterpratation === PhotometricInterpratation.Monochrome2) &&
+        dicomImage.samplePerPixel === 1
+      ) {
+        const {
+          rows,
+          columns,
+          photometricInterpratation,
+          pixelRepresentation,
+          bitsAllocated,
+          bitsStored,
+          highBit,
+          pixelData,
+          pixelDataVr,
+        } = dicomImage;
+        return Image_._fromDataForImageGrayScale({
+          rows,
+          columns,
+          photometricInterpratation,
+          pixelRepresentation,
+          bitsAllocated,
+          bitsStored,
+          highBit,
+          pixelData,
+          pixelDataVr,
+        });
       }
     }
 
-
-      throw Error("Couldn't convert to Image")
+    throw Error("Couldn't convert to Image");
   },
-  _grayScaleFrom: ({rows, columns, bitsAllocated, pixelData}: DataForImageGrayScale): Image => {
+  _fromDataForImageGrayScale: ({
+    rows,
+    columns,
+    photometricInterpratation,
+    pixelRepresentation,
+    bitsAllocated,
+    bitsStored,
+    highBit,
+    pixelData,
+    pixelDataVr,
+  }: DataForImageGrayScale): Image => {
+    if (pixelDataVr === "OW" && bitsAllocated !== 16) {
+      throw Error("Not supported pixelData VR");
+    }
+    if (highBit + 1 !== bitsStored) {
+      throw Error("Not supported combination of hightBit and bitsStored")
+    }
+    if (photometricInterpratation === PhotometricInterpratation.Monochrome1) {
+      throw Error("Not supported photometricInterpratation")
+    }
+    if (pixelRepresentation === PixelRepresentation.Signed) {
+      throw Error("Not supported pixelRepresentation")
+    }
+
     const imagePixelData = (function () {
-      if (bitsAllocated <= 8) {
+      if (bitsAllocated === 8) {
         return new Uint8Array(pixelData.buffer);
       }
-      if (bitsAllocated <= 16) {
+      if (bitsAllocated === 16) {
         return new Uint16Array(pixelData.buffer);
       }
-      if (bitsAllocated <= 32) {
+      if (bitsAllocated === 32) {
         return new Uint32Array(pixelData.buffer);
       }
-      throw Error("Unexpected bitsAllocated");
+      throw Error("Not supported bitsAllocated");
     })();
 
     return {
@@ -65,16 +114,15 @@ export const Image_ = {
       pixelData: imagePixelData,
     };
   },
-  _rgbFrom: (dicomImage: DicomImage): Image => {
-
+  _rgbFrom: (dicomImage: DicomImage): Image => {  // TODO
     // depends on planarConfiguration, bitsAllocated (bitsStored), highBit, pixelRepresentation,
-    dicomImage.samplePerPixel
-      return {
-          type: "rgb",
+    dicomImage.samplePerPixel;
+    return {
+      type: "rgb",
 
-          rows: dicomImage.rows,
-          columns: dicomImage.columns,
-          pixelData: new Uint32Array(dicomImage.pixelData.buffer),
-      }
-  }
+      rows: dicomImage.rows,
+      columns: dicomImage.columns,
+      pixelData: new Uint32Array(dicomImage.pixelData.buffer),
+    };
+  },
 };
