@@ -1,5 +1,11 @@
 import { Image } from "react-konva";
-import { Compression, DicomImage, PhotometricInterpratation, PixelRepresentation } from "./DicomImage";
+import {
+  Compression,
+  DicomImage,
+  PhotometricInterpratation,
+  PixelRepresentation,
+  PlanarConfiguration,
+} from "./DicomImage";
 
 export type Image = ImageGrayScale | ImageRGB;
 
@@ -29,6 +35,22 @@ interface DataForImageGrayScale {
   bitsAllocated: number;
   bitsStored: number;
   highBit: number;
+
+  pixelData: Uint8Array;
+  pixelDataVr: "OB" | "OW";
+}
+
+interface DataForImageRGB {
+  rows: number;
+  columns: number;
+
+  planarConfiguration: PlanarConfiguration;
+
+  bitsAllocated: number;
+  bitsStored: number;
+  highBit: number;
+
+  pixelRepresentation: PixelRepresentation;
 
   pixelData: Uint8Array;
   pixelDataVr: "OB" | "OW";
@@ -66,6 +88,30 @@ export const Image_ = {
         });
       }
     }
+    if (dicomImage.samplePerPixel === 3 && dicomImage.photometricInterpratation === PhotometricInterpratation.Rgb) {
+      const {
+        rows,
+        columns,
+        planarConfiguration,
+        bitsAllocated,
+        bitsStored,
+        highBit,
+        pixelRepresentation,
+        pixelData,
+        pixelDataVr,
+      } = dicomImage;
+      return Image_._fromDataForImageRGB({
+        rows,
+        columns,
+        planarConfiguration: planarConfiguration ?? PlanarConfiguration.Interlaced,
+        bitsAllocated,
+        bitsStored,
+        highBit,
+        pixelRepresentation,
+        pixelData,
+        pixelDataVr,
+      });
+    }
 
     throw Error("Couldn't convert to Image");
   },
@@ -79,18 +125,18 @@ export const Image_ = {
     highBit,
     pixelData,
     pixelDataVr,
-  }: DataForImageGrayScale): Image => {
+  }: DataForImageGrayScale): ImageGrayScale => {
     if (pixelDataVr === "OW" && bitsAllocated !== 16) {
       throw Error("Not supported pixelData VR");
     }
     if (highBit + 1 !== bitsStored) {
-      throw Error("Not supported combination of hightBit and bitsStored")
+      throw Error("Not supported combination of hightBit and bitsStored");
     }
     if (photometricInterpratation === PhotometricInterpratation.Monochrome1) {
-      throw Error("Not supported photometricInterpratation")
+      throw Error("Not supported photometricInterpratation");
     }
     if (pixelRepresentation === PixelRepresentation.Signed) {
-      throw Error("Not supported pixelRepresentation")
+      throw Error("Not supported pixelRepresentation");
     }
 
     const imagePixelData = (function () {
@@ -114,15 +160,33 @@ export const Image_ = {
       pixelData: imagePixelData,
     };
   },
-  _rgbFrom: (dicomImage: DicomImage): Image => {  // TODO
-    // depends on planarConfiguration, bitsAllocated (bitsStored), highBit, pixelRepresentation,
-    dicomImage.samplePerPixel;
+  _fromDataForImageRGB: ({
+    rows,
+    columns,
+    planarConfiguration,
+    bitsAllocated,
+    bitsStored,
+    highBit,
+    pixelRepresentation,
+    pixelData,
+    pixelDataVr,
+  }: DataForImageRGB): ImageRGB => {
+    if (bitsAllocated !== 8 || bitsStored !== 8 || highBit !== 7) {
+      throw new Error("Not supported combination of bitsAllocated, bitsStored, highBit");
+    }
+
+    const pixelsCount = rows * columns;
+    const rgbPixelData = new Uint32Array(pixelsCount);
+    for (let idx = 0; idx < pixelsCount; idx += 1) {
+      rgbPixelData[idx] = (pixelData[3 * idx] & 0x000000FF) | (pixelData[3 * idx + 1] & 0x0000FF00) | ((pixelData[3 * idx + 2] & 0x00FF0000)) | 0xFF000000;
+    }
+
     return {
       type: "rgb",
 
-      rows: dicomImage.rows,
-      columns: dicomImage.columns,
-      pixelData: new Uint32Array(dicomImage.pixelData.buffer),
+      rows,
+      columns,
+      pixelData: rgbPixelData,
     };
   },
 };
