@@ -1,9 +1,9 @@
 import Konva from "konva";
-import React, { useEffect } from "react";
-import { Circle, Group, Layer, Rect, Stage, useStrictMode } from "react-konva";
+import React, { useEffect, useState } from "react";
+import { Circle, Layer, Stage, useStrictMode } from "react-konva";
 
 const KonvaPlayground = (): React.ReactElement | null => {
-  const [showChild, setShowChild] = React.useState(false);
+  const [showChild, setShowChild] = useState(false);
 
   // Wait until after client-side hydration to show
   useEffect(() => {
@@ -23,7 +23,7 @@ export default KonvaPlayground;
 const Tmp = (): React.ReactElement => {
   useStrictMode(true);
 
-  const [color, setColor] = React.useState<string>();
+  const [color, setColor] = useState<string>();
 
   return (
     <Stage width={300} height={300}>
@@ -33,10 +33,10 @@ const Tmp = (): React.ReactElement => {
           y={0}
           draggable
           radius={50}
-          fill="red"
-          // onDragEnd={() => {
-          //   setColor(Konva.Util.getRandomColor());
-          // }}
+          fill={color}
+          onDragEnd={() => {
+            setColor(Konva.Util.getRandomColor());
+          }}
         />
       </Layer>
     </Stage>
