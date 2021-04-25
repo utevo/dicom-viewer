@@ -7,7 +7,7 @@ interface Props {
 
 export const Tools = ({ tool, onToolChange }: Props): React.ReactElement => {
   return (
-    <select value={tool} onChange={(e) => onToolChange(e.target.value as Tool)}>
+    <select value={tool} onBlur={(e) => onToolChange(e.target.value as Tool)}>
       <option value={Tool.Nothing}>Nothing</option>
       <option value={Tool.Pan}>Pan</option>
       <option value={Tool.Rotate}>Rotate</option>
