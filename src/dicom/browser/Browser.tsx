@@ -19,11 +19,7 @@ export const Browser = (): React.ReactElement => {
   };
 
   const handleMouseDown = (evt: Konva.KonvaEventObject<MouseEvent>): void => {
-    switch (tool) {
-      case "PAN":
-        setButtonDown(true);
-        break;
-    }
+    setButtonDown(true);
   };
 
   const handleMouseMove = (evt: Konva.KonvaEventObject<MouseEvent>): void => {
@@ -51,10 +47,7 @@ export const Browser = (): React.ReactElement => {
   };
 
   const handleMouseUp = (evt: Konva.KonvaEventObject<MouseEvent>): void => {
-    switch (tool) {
-      case "PAN":
-        setButtonDown(false);
-    }
+    setButtonDown(false);
   };
 
   return (
