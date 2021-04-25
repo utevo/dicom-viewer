@@ -6,6 +6,8 @@ import { Image, Image_ } from "../domain/Image";
 import { DicomImage } from "../domain/DicomImage";
 import Konva from "konva";
 import { Position, Tool, ViewPort } from "./types";
+import { InputDirectory } from "../InputDirectory";
+import { Files } from "./Files";
 
 export const Browser = (): React.ReactElement => {
   const [image, setImage] = useState<Image | undefined>(undefined);
@@ -71,6 +73,12 @@ export const Browser = (): React.ReactElement => {
     setButtonDown(false);
   };
 
+  const [directoryHandle, setDirectoryHandle] = useState<FileSystemDirectoryHandle>();
+
+  const handleFileChange = (arrayBuffer: ArrayBuffer): void => {
+    console.log("handle file change");
+  };
+
   return (
     <div>
       <InputDicomImage onImport={handleImageChange} />
@@ -85,6 +93,8 @@ export const Browser = (): React.ReactElement => {
         onMouseUp={handleMouseUp}
         onMouseLeave={handleMouseLeave}
       />
+      <InputDirectory onDirectoryHandleChange={setDirectoryHandle} />
+      {directoryHandle != null && <Files directoryHandle={directoryHandle} onFileChange={handleFileChange} />}
     </div>
   );
 };
