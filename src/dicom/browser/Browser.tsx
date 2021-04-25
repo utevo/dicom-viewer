@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { ImportDicomImage } from "../ImportDicomImage";
+import { InputDicomImage } from "../InputDicomImage";
 import { Tools as ToolsComponent } from "./Tools";
 import { Workspace } from "./Workspace";
 import { Image, Image_ } from "../domain/Image";
@@ -71,7 +71,7 @@ export const Browser = (): React.ReactElement => {
 
   return (
     <div>
-      <ImportDicomImage onImport={handleImageChange} />
+      <InputDicomImage onImport={handleImageChange} />
       <ToolsComponent tool={tool} onToolChange={setTool} />
       <Workspace
         width={400}

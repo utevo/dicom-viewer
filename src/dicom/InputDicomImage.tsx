@@ -5,7 +5,7 @@ interface Props {
   onImport: (dicomImage: DicomImage) => void;
 }
 
-export const ImportDicomImage = ({ onImport }: Props): React.ReactElement => {
+export const InputDicomImage = ({ onImport }: Props): React.ReactElement => {
   const handleChange: React.ChangeEventHandler<HTMLInputElement> = async (e) => {
     const files = e.target.files;
     if (files == null) return;
