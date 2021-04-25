@@ -1,24 +1,24 @@
-import { parseDicom } from "dicom-parser"
-import { DicomImage, DicomImage_ } from "./domain/DicomImage"
+import { parseDicom } from "dicom-parser";
+import { DicomImage, DicomImage_ } from "./domain/DicomImage";
 
 interface Props {
-  onImport: (dicomImage: DicomImage) => void
+  onImport: (dicomImage: DicomImage) => void;
 }
 
 export const ImportDicomImage = ({ onImport }: Props): React.ReactElement => {
   const handleChange: React.ChangeEventHandler<HTMLInputElement> = async (e) => {
-    const files = e.target.files
-    if (files == null) return
-    const file = files.item(0)
-    if (file == null) return
+    const files = e.target.files;
+    if (files == null) return;
+    const file = files.item(0);
+    if (file == null) return;
 
-    const arrayBuffer = await file.arrayBuffer()
-    const byteArray = new Uint8Array(arrayBuffer)
-    const dataSet = parseDicom(byteArray)
+    const arrayBuffer = await file.arrayBuffer();
+    const byteArray = new Uint8Array(arrayBuffer);
+    const dataSet = parseDicom(byteArray);
 
-    const dicomImage = DicomImage_.fromDataSet(dataSet)
+    const dicomImage = DicomImage_.fromDataSet(dataSet);
     onImport(dicomImage);
-  }
+  };
 
-  return <input type="file" onChange={handleChange} />
-}
+  return <input type="file" onChange={handleChange} />;
+};

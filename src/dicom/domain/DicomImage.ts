@@ -18,11 +18,11 @@ export interface DicomImage {
 
   pixelRepresentation: PixelRepresentation;
 
-  windowCenter?: number;
-  windowWidth?: number;
-
   pixelData: Uint8Array;
   pixelDataVr: "OB" | "OW";
+
+  windowCenter?: number;
+  windowWidth?: number;
 }
 
 export const DicomImage_ = {
@@ -96,9 +96,6 @@ export const DicomImage_ = {
             throw Error("Unexpected value of pixelRepresentation");
           })();
 
-    const windowCenter = dataSet.floatString("x00281050");
-    const windowWidth = dataSet.floatString("x00281051");
-
     const pixelDataElement = dataSet.elements.x7fe00010;
     const pixelDataVr =
       pixelDataElement.vr === undefined
@@ -110,8 +107,11 @@ export const DicomImage_ = {
           })();
     const pixelData = new Uint8Array(pixelDataElement.length);
     for (let idx = 0; idx < pixelDataElement.length; idx += 1) {
-      pixelData[idx] = dataSet.byteArray[pixelDataElement.dataOffset + idx]
+      pixelData[idx] = dataSet.byteArray[pixelDataElement.dataOffset + idx];
     }
+
+    const windowCenter = dataSet.floatString("x00281050");
+    const windowWidth = dataSet.floatString("x00281051");
 
     return {
       compression,

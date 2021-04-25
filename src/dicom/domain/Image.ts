@@ -178,7 +178,11 @@ export const Image_ = {
     const pixelsCount = rows * columns;
     const rgbPixelData = new Uint32Array(pixelsCount);
     for (let idx = 0; idx < pixelsCount; idx += 1) {
-      rgbPixelData[idx] = (pixelData[3 * idx] & 0x000000FF) | (pixelData[3 * idx + 1] & 0x0000FF00) | ((pixelData[3 * idx + 2] & 0x00FF0000)) | 0xFF000000;
+      rgbPixelData[idx] =
+        (pixelData[3 * idx] & 0x000000ff) |
+        (pixelData[3 * idx + 1] & 0x0000ff00) |
+        (pixelData[3 * idx + 2] & 0x00ff0000) |
+        0xff000000;
     }
 
     return {

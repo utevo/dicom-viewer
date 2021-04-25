@@ -35,13 +35,15 @@ export const Workspace = ({
     if (image != undefined) (async () => setImageBitmap(await createImageBitmap(ImageData_.fromImage(image))))();
   }, [image]);
 
-  const offset = image ?{
-    x: image.columns / 2,
-    y: image.rows / 2,
-  } : {
-    x: 0,
-    y: 0
-  }
+  const offset = image
+    ? {
+        x: image.columns / 2,
+        y: image.rows / 2,
+      }
+    : {
+        x: 0,
+        y: 0,
+      };
 
   return image ? (
     <Stage
