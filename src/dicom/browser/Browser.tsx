@@ -31,7 +31,7 @@ export const Browser = (): React.ReactElement => {
     };
 
     switch (tool) {
-      case Tool.Pan:
+      case Tool.Pan: {
         if (buttonDown !== true) break;
 
         const newViewPort = {
@@ -43,19 +43,21 @@ export const Browser = (): React.ReactElement => {
         };
         setViewPort(newViewPort);
         break;
+      }
 
-      case Tool.Rotate:
+      case Tool.Rotate: {
         if (buttonDown !== true) break;
 
         const rotationDiff =
           (Math.abs(mousePositionDiff.x) > Math.abs(mousePositionDiff.y) ? mousePositionDiff.x : -mousePositionDiff.y) /
           4;
-        let newViewPort2: ViewPort = {
+        const newViewPort: ViewPort = {
           ...viewPort,
           rotation: viewPort.rotation + rotationDiff,
         };
-        setViewPort(newViewPort2);
+        setViewPort(newViewPort);
         break;
+      }
     }
 
     setPrevMousePosition(currMousePosition);
