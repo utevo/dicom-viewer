@@ -10,6 +10,7 @@ export const Tools = ({ tool, onToolChange }: Props): React.ReactElement => {
     <select value={tool} onChange={(e) => onToolChange(e.target.value as Tool)}>
       <option value={Tool.Nothing}>Nothing</option>
       <option value={Tool.Pan}>Pan</option>
+      <option value={Tool.Rotate}>Rotate</option>
     </select>
   );
 };

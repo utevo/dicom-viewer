@@ -1,5 +1,6 @@
 export interface ViewPort {
   position: Position;
+  rotation: number;
 }
 
 export interface Position {
@@ -10,4 +11,5 @@ export interface Position {
 export enum Tool {
   Nothing = "NOTHING",
   Pan = "PAN",
+  Rotate = "ROTATE",
 }
