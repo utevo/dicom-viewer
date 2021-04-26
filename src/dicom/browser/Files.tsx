@@ -31,7 +31,11 @@ const filesFromDirectoryHandle = async (directoryHandle: FileSystemDirectoryHand
     if ((handle as any).kind === "file") {
       files.push({ _type: "regularFile", name, handle: handle as FileSystemFileHandle });
     } else {
-      files.push({ _type: "directory", name, files: await filesFromDirectoryHandle(handle as FileSystemDirectoryHandle) });
+      files.push({
+        _type: "directory",
+        name,
+        files: await filesFromDirectoryHandle(handle as FileSystemDirectoryHandle),
+      });
     }
   }
 
@@ -47,5 +51,41 @@ export const Files = ({ directoryHandle, onFileChange }: Props): React.ReactElem
 
   if (files == null) return <div>Loading...</div>;
 
-  return <div>{JSON.stringify(files, null, 2)}</div>;
+  return (
+    <div>
+      {files.map((file) =>
+        file._type === "regularFile" ? (
+          <RegularFileComponent regularFile={file} />
+        ) : (
+          <DirectoryComponent directory={file} />
+        )
+      )}
+    </div>
+  );
+};
+
+interface DirectoryComponentProps {
+  directory: Directory;
+}
+
+const DirectoryComponent = ({ directory }: DirectoryComponentProps): React.ReactElement => {
+  return (
+    <ul>
+      {directory.files.map((file) =>
+        file._type === "regularFile" ? (
+          <RegularFileComponent regularFile={file} />
+        ) : (
+          <DirectoryComponent directory={file} />
+        )
+      )}
+    </ul>
+  );
+};
+
+interface RegularFileComponentProps {
+  regularFile: RegularFile;
+}
+
+const RegularFileComponent = ({ regularFile }: RegularFileComponentProps): React.ReactElement => {
+  return <div>{regularFile.name}</div>;
 };
