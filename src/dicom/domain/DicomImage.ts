@@ -1,4 +1,5 @@
 import { DataSet, parseDicom } from "dicom-parser";
+import { Result, ResultTag } from "../../types";
 
 export interface DicomImage {
   compression: Compression;
@@ -26,92 +27,127 @@ export interface DicomImage {
 }
 
 export const DicomImage_ = {
-  fromFile: async (file: File): Promise<DicomImage> => {
+  fromFile: async (file: File): Promise<Result<DicomImage, string>> => {
     const arrayBuffer = await file.arrayBuffer();
     const byteArray = new Uint8Array(arrayBuffer);
     const dataSet = parseDicom(byteArray);
 
     return DicomImage_._fromDataSet(dataSet);
   },
-  _fromDataSet: (dataSet: DataSet): DicomImage => {
+  _fromDataSet: (dataSet: DataSet): Result<DicomImage, string> => {
     const transferSyntax = TransferSyntax_.fromTransferSyntaxUID(dataSet.string("x00020012"));
 
     const [compression, endianness] = TransferSyntax_.toCompressionAndEndianness(transferSyntax);
 
-    const rows =
-      dataSet.uint16("x00280010") ??
-      (() => {
-        throw Error("DicomImage need to have rows");
-      })();
+    const rows = dataSet.uint16("x00280010");
+    if (rows == null)
+      return {
+        _tag: ResultTag.Err,
+        value: "DicomImage need to have rows",
+      };
 
-    const columns =
-      dataSet.uint16("x00280011") ??
-      (() => {
-        throw Error("DicomImage need to have columns");
-      })();
+    const columns = dataSet.uint16("x00280011");
+    if (columns == null)
+      return {
+        _tag: ResultTag.Err,
+        value: "DicomImage need to have columns",
+      };
 
-    const samplePerPixel =
-      dataSet.uint16("x00280002") ??
-      (() => {
-        throw Error("DicomImage need to have samplePerPixel");
-      })();
-    const photometricInterpratation =
-      (dataSet.string("x00280004") as PhotometricInterpratation) ??
-      (() => {
-        throw Error("DicomImage need to have photometricInterpratation");
-      })();
+    const samplePerPixel = dataSet.uint16("x00280002");
+    if (samplePerPixel == null)
+      return {
+        _tag: ResultTag.Err,
+        value: "DicomImage need to have samplePerPixel",
+      };
+
+    const photometricInterpratationValue = dataSet.string("x00280004");
+    if (photometricInterpratationValue == null) {
+      return {
+        _tag: ResultTag.Err,
+        value: "DicomImage need to have photometricInterpratation",
+      };
+    }
+
+    const photometricInterpratation = photometricInterpratationValue as PhotometricInterpratation; // ToDo: Need validation
 
     const planarConfigurationValue = dataSet.uint16("x00280006") ?? 0;
-    const planarConfiguration: PlanarConfiguration | undefined =
-      planarConfigurationValue == null
-        ? undefined
-        : planarConfigurationValue === 0
-        ? PlanarConfiguration.Interlaced
-        : planarConfigurationValue === 1
-        ? PlanarConfiguration.Separated
-        : (() => {
-            throw Error("Unexpected value of planarConfiguration");
-          })();
+    let planarConfiguration: PlanarConfiguration;
+    switch (planarConfigurationValue) {
+      case 0:
+        planarConfiguration = PlanarConfiguration.Interlaced;
+        break;
 
-    const bitsAllocated =
-      dataSet.uint16("x00280100") ??
-      (() => {
-        throw Error("DicomImage need to have bitsAllocated");
-      })();
-    const bitsStored =
-      dataSet.uint16("x00280101") ??
-      (() => {
-        throw Error("DicomImage need to have bitsStored");
-      })();
-    const highBit =
-      dataSet.uint16("x00280102") ??
-      (() => {
-        throw Error("DicomImage need to have highBit");
-      })();
+      case 1:
+        planarConfiguration = PlanarConfiguration.Separated;
+        break;
 
-    const pixelRepresentationValue =
-      dataSet.uint16("x00280103") ??
-      (() => {
-        throw Error("DicomImage need to have pixelRepresentationValue");
-      })();
-    const pixelRepresentation: PixelRepresentation =
-      pixelRepresentationValue === 0
-        ? PixelRepresentation.Unsigned
-        : pixelRepresentationValue === 1
-        ? PixelRepresentation.Signed
-        : (() => {
-            throw Error("Unexpected value of pixelRepresentation");
-          })();
+      default:
+        return {
+          _tag: ResultTag.Err,
+          value: "DicomImage have incorrect planarConfiguration",
+        };
+    }
+
+    const bitsAllocated = dataSet.uint16("x00280100");
+    if (bitsAllocated == null)
+      return {
+        _tag: ResultTag.Err,
+        value: "DicomImage need to have bitsAllocated",
+      };
+
+    const bitsStored = dataSet.uint16("x00280101");
+    if (bitsStored == null)
+      return {
+        _tag: ResultTag.Err,
+        value: "DicomImage need to have bitsStored",
+      };
+
+    const highBit = dataSet.uint16("x00280102");
+    if (highBit == null)
+      return {
+        _tag: ResultTag.Err,
+        value: "DicomImage need to have highBit",
+      };
+
+    const pixelRepresentationValue = dataSet.uint16("x00280103");
+    if (pixelRepresentationValue == null)
+      return {
+        _tag: ResultTag.Err,
+        value: "DicomImage need to have pixelRepresentationValue",
+      };
+
+    let pixelRepresentation: PixelRepresentation;
+    switch (pixelRepresentationValue) {
+      case 0:
+        pixelRepresentation = PixelRepresentation.Unsigned;
+        break;
+      case 1:
+        pixelRepresentation = PixelRepresentation.Signed;
+        break;
+      default:
+        return {
+          _tag: ResultTag.Err,
+          value: "Unexpected value of pixelRepresentation",
+        };
+    }
 
     const pixelDataElement = dataSet.elements.x7fe00010;
-    const pixelDataVr =
-      pixelDataElement.vr === undefined
-        ? "OB"
-        : ["OB", "OW"].includes(pixelDataElement.vr)
-        ? (pixelDataElement.vr as "OB" | "OW")
-        : (() => {
-            throw Error("Unexpected pixelData VR");
-          })();
+    const pixelDataVrValue = pixelDataElement.vr ?? "OB";
+
+    let pixelDataVr: "OB" | "OW";
+    switch (pixelDataVrValue) {
+      case "OB":
+        pixelDataVr = "OB";
+        break;
+      case "OW":
+        pixelDataVr = "OW";
+        break;
+      default:
+        return {
+          _tag: ResultTag.Err,
+          value: "Unexpected pixelData VR",
+        };
+    }
     const pixelData = new Uint8Array(pixelDataElement.length);
     for (let idx = 0; idx < pixelDataElement.length; idx += 1) {
       pixelData[idx] = dataSet.byteArray[pixelDataElement.dataOffset + idx];
@@ -121,28 +157,31 @@ export const DicomImage_ = {
     const windowWidth = dataSet.floatString("x00281051");
 
     return {
-      compression,
-      endianness,
+      _tag: ResultTag.Ok,
+      value: {
+        compression,
+        endianness,
 
-      rows,
-      columns,
+        rows,
+        columns,
 
-      samplePerPixel,
-      photometricInterpratation,
+        samplePerPixel,
+        photometricInterpratation,
 
-      planarConfiguration,
+        planarConfiguration,
 
-      bitsAllocated,
-      bitsStored,
-      highBit,
+        bitsAllocated,
+        bitsStored,
+        highBit,
 
-      pixelRepresentation,
+        pixelRepresentation,
 
-      windowCenter,
-      windowWidth,
+        windowCenter,
+        windowWidth,
 
-      pixelData,
-      pixelDataVr,
+        pixelData,
+        pixelDataVr,
+      },
     };
   },
 };

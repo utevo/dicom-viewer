@@ -8,6 +8,7 @@ import Konva from "konva";
 import { Position, Tool, ViewPort } from "./types";
 import { InputDirectory } from "../InputDirectory";
 import { Files } from "./Files";
+import { ResultTag } from "../../types";
 
 export const Browser = (): React.ReactElement => {
   const [image, setImage] = useState<Image | undefined>(undefined);
@@ -17,7 +18,12 @@ export const Browser = (): React.ReactElement => {
   const [prevMousePosition, setPrevMousePosition] = useState<Position>({ x: 0, y: 0 });
 
   const handleDicomImageChange = (newDicomImage: DicomImage) => {
-    setImage(Image_.fromDicomImage(newDicomImage));
+    const result = Image_.fromDicomImage(newDicomImage);
+    if (result._tag === ResultTag.Err) {
+      console.log(result.value)
+      return;
+    }
+    setImage(result.value);
     setViewPort(DEFAULT_VIEWPORT);
   };
 
@@ -76,7 +82,12 @@ export const Browser = (): React.ReactElement => {
   const [directoryHandle, setDirectoryHandle] = useState<FileSystemDirectoryHandle>();
 
   const handleFileChange = async (file: File): Promise<void> => {
-    handleDicomImageChange(await DicomImage_.fromFile(file));
+    const result = await DicomImage_.fromFile(file);
+    if (result._tag === ResultTag.Err) {
+      console.log(result.value)
+      return;
+    }
+    handleDicomImageChange(result.value);
   };
 
   return (

@@ -2,7 +2,7 @@ import { Image, ImageGrayScale, ImageRGB } from "./Image";
 
 export const ImageData_ = {
   fromImage(image: Image): ImageData {
-    switch (image.type) {
+    switch (image._tag) {
       case "grayScale":
         return ImageData_._fromImageGrayScale(image);
       case "rgb":

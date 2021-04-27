@@ -1,4 +1,4 @@
-import { Image } from "react-konva";
+import { Result, ResultTag } from "../../types";
 import {
   Compression,
   DicomImage,
@@ -10,7 +10,7 @@ import {
 export type Image = ImageGrayScale | ImageRGB;
 
 export interface ImageGrayScale {
-  type: "grayScale";
+  _tag: "grayScale";
 
   rows: number;
   columns: number;
@@ -18,7 +18,7 @@ export interface ImageGrayScale {
 }
 
 export interface ImageRGB {
-  type: "rgb";
+  _tag: "rgb";
 
   rows: number;
   columns: number;
@@ -57,7 +57,7 @@ interface DataForImageRGB {
 }
 
 export const Image_ = {
-  fromDicomImage: (dicomImage: DicomImage): Image => {
+  fromDicomImage: (dicomImage: DicomImage): Result<Image, string> => {
     if (dicomImage.compression === Compression.None) {
       if (
         (dicomImage.photometricInterpratation === PhotometricInterpratation.Monochrome1 ||
@@ -113,7 +113,10 @@ export const Image_ = {
       });
     }
 
-    throw Error("Couldn't convert to Image");
+    return {
+      _tag: ResultTag.Err,
+      value: "Couldn't convert to Image",
+    };
   },
   _fromDataForImageGrayScale: ({
     rows,
@@ -125,39 +128,40 @@ export const Image_ = {
     highBit,
     pixelData,
     pixelDataVr,
-  }: DataForImageGrayScale): ImageGrayScale => {
-    if (pixelDataVr === "OW" && bitsAllocated !== 16) {
-      throw Error("Not supported pixelData VR");
-    }
-    if (highBit + 1 !== bitsStored) {
-      throw Error("Not supported combination of hightBit and bitsStored");
-    }
-    if (photometricInterpratation === PhotometricInterpratation.Monochrome1) {
-      throw Error("Not supported photometricInterpratation");
-    }
-    if (pixelRepresentation === PixelRepresentation.Signed) {
-      throw Error("Not supported pixelRepresentation");
-    }
+  }: DataForImageGrayScale): Result<ImageGrayScale, string> => {
+    if (pixelDataVr === "OW" && bitsAllocated !== 16)
+      return { _tag: ResultTag.Err, value: "Not supported pixelData VR" };
+    if (highBit + 1 !== bitsStored)
+      return { _tag: ResultTag.Err, value: "Not supported combination of hightBit and bitsStored" };
+    if (photometricInterpratation === PhotometricInterpratation.Monochrome1)
+      return { _tag: ResultTag.Err, value: "Not supported photometricInterpratation" };
+    if (pixelRepresentation === PixelRepresentation.Signed)
+      return { _tag: ResultTag.Err, value: "Not supported pixelRepresentation" };
 
-    const imagePixelData = (function () {
-      if (bitsAllocated === 8) {
-        return new Uint8Array(pixelData.buffer);
-      }
-      if (bitsAllocated === 16) {
-        return new Uint16Array(pixelData.buffer);
-      }
-      if (bitsAllocated === 32) {
-        return new Uint32Array(pixelData.buffer);
-      }
-      throw Error("Not supported bitsAllocated");
-    })();
+    let imagePixelData;
+    switch (bitsAllocated) {
+      case 8:
+        imagePixelData = new Uint8Array(pixelData.buffer);
+        break;
+      case 16:
+        imagePixelData = new Uint16Array(pixelData.buffer);
+        break;
+      case 32:
+        imagePixelData = new Uint32Array(pixelData.buffer);
+        break;
+      default:
+        return { _tag: ResultTag.Err, value: "Not supported bitsAllocated" };
+    }
 
     return {
-      type: "grayScale",
+      _tag: ResultTag.Ok,
+      value: {
+        _tag: "grayScale",
 
-      rows,
-      columns,
-      pixelData: imagePixelData,
+        rows,
+        columns,
+        pixelData: imagePixelData,
+      },
     };
   },
   _fromDataForImageRGB: ({
@@ -170,10 +174,12 @@ export const Image_ = {
     pixelRepresentation,
     pixelData,
     pixelDataVr,
-  }: DataForImageRGB): ImageRGB => {
-    if (bitsAllocated !== 8 || bitsStored !== 8 || highBit !== 7) {
-      throw new Error("Not supported combination of bitsAllocated, bitsStored, highBit");
-    }
+  }: DataForImageRGB): Result<ImageRGB, string> => {
+    if (bitsAllocated !== 8 || bitsStored !== 8 || highBit !== 7)
+      return {
+        _tag: ResultTag.Err,
+        value: "Not supported combination of bitsAllocated, bitsStored, highBit",
+      };
 
     const pixelsCount = rows * columns;
     const rgbPixelData = new Uint32Array(pixelsCount);
@@ -186,11 +192,14 @@ export const Image_ = {
     }
 
     return {
-      type: "rgb",
+      _tag: ResultTag.Ok,
+      value: {
+        _tag: "rgb",
 
-      rows,
-      columns,
-      pixelData: rgbPixelData,
+        rows,
+        columns,
+        pixelData: rgbPixelData,
+      },
     };
   },
 };
