@@ -1,4 +1,4 @@
-import { DataSet } from "dicom-parser";
+import { DataSet, parseDicom } from "dicom-parser";
 
 export interface DicomImage {
   compression: Compression;
@@ -26,7 +26,14 @@ export interface DicomImage {
 }
 
 export const DicomImage_ = {
-  fromDataSet: (dataSet: DataSet): DicomImage => {
+  fromFile: async (file: File): Promise<DicomImage> => {
+    const arrayBuffer = await file.arrayBuffer();
+    const byteArray = new Uint8Array(arrayBuffer);
+    const dataSet = parseDicom(byteArray);
+
+    return DicomImage_._fromDataSet(dataSet);
+  },
+  _fromDataSet: (dataSet: DataSet): DicomImage => {
     const transferSyntax = TransferSyntax_.fromTransferSyntaxUID(dataSet.string("x00020012"));
 
     const [compression, endianness] = TransferSyntax_.toCompressionAndEndianness(transferSyntax);

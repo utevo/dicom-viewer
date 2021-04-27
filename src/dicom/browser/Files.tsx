@@ -1,34 +1,33 @@
+import { Accordion, AccordionButton, AccordionItem, AccordionPanel } from "@chakra-ui/react";
 import { stringToArray } from "konva/types/shapes/Text";
 import React, { useEffect, useState } from "react";
 import { DicomImage } from "../domain/DicomImage";
 
-interface Props {
-  directoryHandle: FileSystemDirectoryHandle;
-
-  onFileChange: (arrayBuffer: ArrayBuffer) => void;
-}
-
-type File = RegularFile | Directory;
-interface RegularFile {
+type FsFile = FsRegularFile | FsDirectory;
+interface FsRegularFile {
   _type: "regularFile";
 
   name: string;
   handle: FileSystemFileHandle;
 }
 
-interface Directory {
+interface FsDirectory {
   _type: "directory";
 
   name: string;
-  files: File[];
+  files: FsFile[];
 }
 
-const filesFromDirectoryHandle = async (directoryHandle: FileSystemDirectoryHandle): Promise<File[]> => {
-  const files: File[] = [];
+interface HaveKindProp {
+  kind: "file" | "directory";
+}
+
+const filesFromDirectoryHandle = async (directoryHandle: FileSystemDirectoryHandle): Promise<FsFile[]> => {
+  const files: FsFile[] = [];
   console.log({ directoryHandle });
   for await (const entity of directoryHandle.entries()) {
     const [name, handle] = entity;
-    if ((handle as any).kind === "file") {
+    if (((handle as unknown) as HaveKindProp).kind === "file") {
       files.push({ _type: "regularFile", name, handle: handle as FileSystemFileHandle });
     } else {
       files.push({
@@ -41,9 +40,14 @@ const filesFromDirectoryHandle = async (directoryHandle: FileSystemDirectoryHand
 
   return files;
 };
+interface Props {
+  directoryHandle: FileSystemDirectoryHandle;
+
+  onFileChange: (file: File) => void;
+}
 
 export const Files = ({ directoryHandle, onFileChange }: Props): React.ReactElement => {
-  const [files, setFiles] = useState<File[]>();
+  const [files, setFiles] = useState<FsFile[]>();
 
   useEffect(() => {
     (async () => setFiles(await filesFromDirectoryHandle(directoryHandle)))();
@@ -51,13 +55,18 @@ export const Files = ({ directoryHandle, onFileChange }: Props): React.ReactElem
 
   if (files == null) return <div>Loading...</div>;
 
+  const handleSelectRegularFile = async (regularFile: FsRegularFile): Promise<void> => {
+    const file = await regularFile.handle.getFile();
+    onFileChange(file);
+  };
+
   return (
     <div>
       {files.map((file) =>
         file._type === "regularFile" ? (
-          <RegularFileComponent regularFile={file} />
+          <RegularFileComponent key={file.name} regularFile={file} onSelectRegularFile={handleSelectRegularFile} />
         ) : (
-          <DirectoryComponent directory={file} />
+          <DirectoryComponent key={file.name} directory={file} onSelectRegularFile={handleSelectRegularFile} />
         )
       )}
     </div>
@@ -65,27 +74,48 @@ export const Files = ({ directoryHandle, onFileChange }: Props): React.ReactElem
 };
 
 interface DirectoryComponentProps {
-  directory: Directory;
+  directory: FsDirectory;
+  onSelectRegularFile: (regularFile: FsRegularFile) => void;
 }
 
-const DirectoryComponent = ({ directory }: DirectoryComponentProps): React.ReactElement => {
+const DirectoryComponent = ({ directory, onSelectRegularFile }: DirectoryComponentProps): React.ReactElement => {
   return (
-    <ul>
-      {directory.files.map((file) =>
-        file._type === "regularFile" ? (
-          <RegularFileComponent regularFile={file} />
-        ) : (
-          <DirectoryComponent directory={file} />
-        )
-      )}
-    </ul>
+    <Accordion allowMultiple>
+      <AccordionItem>
+        <h2>
+          <AccordionButton>{directory.name}</AccordionButton>
+        </h2>
+        <AccordionPanel>
+          {directory.files.map((file) =>
+            file._type === "regularFile" ? (
+              <RegularFileComponent
+                key={`${directory.name}/${file.name}`}
+                regularFile={file}
+                onSelectRegularFile={onSelectRegularFile}
+              />
+            ) : (
+              <DirectoryComponent
+                key={`${directory.name}/${file.name}`}
+                directory={file}
+                onSelectRegularFile={onSelectRegularFile}
+              />
+            )
+          )}
+        </AccordionPanel>
+      </AccordionItem>
+    </Accordion>
   );
 };
 
 interface RegularFileComponentProps {
-  regularFile: RegularFile;
+  regularFile: FsRegularFile;
+  onSelectRegularFile: (regularFile: FsRegularFile) => void;
 }
 
-const RegularFileComponent = ({ regularFile }: RegularFileComponentProps): React.ReactElement => {
-  return <div>{regularFile.name}</div>;
+const RegularFileComponent = ({ regularFile, onSelectRegularFile }: RegularFileComponentProps): React.ReactElement => {
+  return (
+    <div>
+      <button onClick={() => onSelectRegularFile(regularFile)}>{regularFile.name}</button>
+    </div>
+  );
 };

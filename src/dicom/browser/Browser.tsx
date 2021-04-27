@@ -3,7 +3,7 @@ import { InputDicomImage } from "../InputDicomImage";
 import { Tools as ToolsComponent } from "./Tools";
 import { Workspace } from "./Workspace";
 import { Image, Image_ } from "../domain/Image";
-import { DicomImage } from "../domain/DicomImage";
+import { DicomImage, DicomImage_ } from "../domain/DicomImage";
 import Konva from "konva";
 import { Position, Tool, ViewPort } from "./types";
 import { InputDirectory } from "../InputDirectory";
@@ -16,7 +16,7 @@ export const Browser = (): React.ReactElement => {
   const [buttonDown, setButtonDown] = useState<boolean>(false);
   const [prevMousePosition, setPrevMousePosition] = useState<Position>({ x: 0, y: 0 });
 
-  const handleImageChange = (newDicomImage: DicomImage) => {
+  const handleDicomImageChange = (newDicomImage: DicomImage) => {
     setImage(Image_.fromDicomImage(newDicomImage));
     setViewPort(DEFAULT_VIEWPORT);
   };
@@ -75,13 +75,13 @@ export const Browser = (): React.ReactElement => {
 
   const [directoryHandle, setDirectoryHandle] = useState<FileSystemDirectoryHandle>();
 
-  const handleFileChange = (arrayBuffer: ArrayBuffer): void => {
-    console.log("handle file change");
+  const handleFileChange = async (file: File): Promise<void> => {
+    handleDicomImageChange(await DicomImage_.fromFile(file));
   };
 
   return (
     <div>
-      <InputDicomImage onImport={handleImageChange} />
+      <InputDicomImage onImport={handleDicomImageChange} />
       <ToolsComponent tool={tool} onToolChange={setTool} />
       <Workspace
         width={400}
