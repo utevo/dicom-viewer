@@ -175,11 +175,21 @@ export const Image_ = {
     pixelData,
     pixelDataVr,
   }: DataForImageRGB): Result<ImageRGB, string> => {
-    if (bitsAllocated !== 8 || bitsStored !== 8 || highBit !== 7)
+    if (bitsAllocated !== 8 || bitsStored !== 8 || highBit !== 7) {
       return {
         _tag: ResultTag.Err,
         value: "Not supported combination of bitsAllocated, bitsStored, highBit",
       };
+    }
+    if (planarConfiguration === PlanarConfiguration.Separated) {
+      return {
+        _tag: ResultTag.Err,
+        value: "Not supported planarConfiguration (separated)",
+      };
+    }
+    if (pixelRepresentation === PixelRepresentation.Signed) {
+      return { _tag: ResultTag.Err, value: "Not supported pixelRepresentation" };
+    }
 
     const pixelsCount = rows * columns;
     const rgbPixelData = new Uint32Array(pixelsCount);

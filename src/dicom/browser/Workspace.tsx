@@ -9,7 +9,7 @@ interface Props {
   width: number;
   height: number;
 
-  image: Image | undefined;
+  imageData: ImageData | undefined;
 
   viewPort: ViewPort;
 
@@ -20,7 +20,7 @@ interface Props {
 }
 
 export const Workspace = ({
-  image,
+  imageData,
   viewPort,
   width,
   height,
@@ -32,20 +32,20 @@ export const Workspace = ({
   const [imageBitmap, setImageBitmap] = useState<ImageBitmap>();
 
   useEffect(() => {
-    if (image != undefined) (async () => setImageBitmap(await createImageBitmap(ImageData_.fromImage(image))))();
-  }, [image]);
+    if (imageData != undefined) (async () => setImageBitmap(await createImageBitmap(imageData)))();
+  }, [imageData]);
 
-  const offset = image
+  const offset = imageData
     ? {
-        x: image.columns / 2,
-        y: image.rows / 2,
+        x: imageData.width / 2,
+        y: imageData.height / 2,
       }
     : {
         x: 0,
         y: 0,
       };
 
-  return image ? (
+  return imageData ? (
     <Stage
       width={width}
       height={height}
@@ -56,8 +56,8 @@ export const Workspace = ({
     >
       <Layer>
         <Group
-          width={image.columns}
-          height={image.rows}
+          width={imageData.width}
+          height={imageData.height}
           x={viewPort.position.x + offset.x}
           y={viewPort.position.y + offset.y}
           rotation={viewPort.rotation}

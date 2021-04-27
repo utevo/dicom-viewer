@@ -12,7 +12,7 @@ export const ImageData_ = {
   _fromImageGrayScale(image: ImageGrayScale): ImageData {
     const imageData = new ImageData(image.columns, image.rows);
 
-    // TODO: LUC
+    // TODO: LUT
 
     for (let idx = 0; idx < image.pixelData.length; idx += 1) {
       const value = image.pixelData[idx];

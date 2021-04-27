@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import { InputDicomImage } from "../InputDicomImage";
 import { Tool, Tools as ToolsComponent } from "./Tools";
 import { Workspace } from "./Workspace";
 import { Image, Image_ } from "../domain/Image";
@@ -9,21 +8,22 @@ import { Position, ViewPort } from "./types";
 import { InputDirectory } from "../InputDirectory";
 import { Files } from "./Files";
 import { ResultTag } from "../../types";
+import { ImageData_ } from "../domain/ImageData";
 
 export const Browser = (): React.ReactElement => {
-  const [image, setImage] = useState<Image | undefined>(undefined);
+  const [imageData, setImageData] = useState<ImageData>();
   const [viewPort, setViewPort] = useState<ViewPort>(DEFAULT_VIEWPORT);
   const [tool, setTool] = useState<Tool>(Tool.Nothing);
   const [buttonDown, setButtonDown] = useState<boolean>(false);
   const [prevMousePosition, setPrevMousePosition] = useState<Position>({ x: 0, y: 0 });
 
   const handleDicomImageChange = (newDicomImage: DicomImage) => {
-    const result = Image_.fromDicomImage(newDicomImage);
-    if (result._tag === ResultTag.Err) {
-      console.log(result.value)
+    const resultImage = Image_.fromDicomImage(newDicomImage);
+    if (resultImage._tag === ResultTag.Err) {
+      console.log(resultImage.value)
       return;
     }
-    setImage(result.value);
+    setImageData(ImageData_.fromImage(resultImage.value));
     setViewPort(DEFAULT_VIEWPORT);
   };
 
@@ -92,12 +92,11 @@ export const Browser = (): React.ReactElement => {
 
   return (
     <div>
-      <InputDicomImage onImport={handleDicomImageChange} />
       <ToolsComponent tool={tool} onToolChange={setTool} />
       <Workspace
-        width={400}
-        height={400}
-        image={image}
+        width={800}
+        height={800}
+        imageData={imageData}
         viewPort={viewPort}
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
