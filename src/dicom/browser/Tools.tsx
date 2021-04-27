@@ -1,5 +1,3 @@
-import { Tool } from "./types";
-
 interface Props {
   tool: Tool;
   onToolChange: (newTool: Tool) => void;
@@ -15,3 +13,9 @@ export const Tools = ({ tool, onToolChange }: Props): React.ReactElement => {
     </select>
   );
 };
+
+export enum Tool {
+  Nothing = "NOTHING",
+  Pan = "PAN",
+  Rotate = "ROTATE",
+}

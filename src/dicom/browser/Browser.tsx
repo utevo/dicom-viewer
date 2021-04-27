@@ -1,11 +1,11 @@
 import React, { useState } from "react";
 import { InputDicomImage } from "../InputDicomImage";
-import { Tools as ToolsComponent } from "./Tools";
+import { Tool, Tools as ToolsComponent } from "./Tools";
 import { Workspace } from "./Workspace";
 import { Image, Image_ } from "../domain/Image";
 import { DicomImage, DicomImage_ } from "../domain/DicomImage";
 import Konva from "konva";
-import { Position, Tool, ViewPort } from "./types";
+import { Position, ViewPort } from "./types";
 import { InputDirectory } from "../InputDirectory";
 import { Files } from "./Files";
 import { ResultTag } from "../../types";

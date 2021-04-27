@@ -5,7 +5,7 @@ interface Props {
 export function InputDirectory({ onDirectoryHandleChange }: Props): React.ReactElement {
   const handleClick = async (evt: React.MouseEvent<HTMLButtonElement>) => {
     const showDirectoryPicker = window.showDirectoryPicker;
-    console.assert(showDirectoryPicker == null, "Unable to use showDirectoryPicker")
+    console.assert(showDirectoryPicker != null, "Unable to use showDirectoryPicker")
 
     onDirectoryHandleChange(await showDirectoryPicker());
   };
