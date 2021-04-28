@@ -1,11 +1,11 @@
 import { Result } from "../../adt";
 import {
   Compression,
-  DicomImage,
+  DicomObject,
   PhotometricInterpratation,
   PixelRepresentation,
   PlanarConfiguration,
-} from "./DicomImage";
+} from "./DicomObject";
 
 export type ImageRawData = ImageRawDataGrayScale | ImageRawDataRgb;
 export enum ImageRawDataTag {
@@ -85,12 +85,12 @@ interface DataForImageRGB {
 export const ImageRawData = {
   GrayScale: ImageRawDataGrayScale,
   Rgb: ImageRawDataRgb,
-  fromDicomImage: (dicomImage: DicomImage): Result<ImageRawData, string> => {
-    if (dicomImage.compression === Compression.None) {
+  fromDicomObject: (dicomObject: DicomObject): Result<ImageRawData, string> => {
+    if (dicomObject.compression === Compression.None) {
       if (
-        (dicomImage.photometricInterpratation === PhotometricInterpratation.Monochrome1 ||
-          dicomImage.photometricInterpratation === PhotometricInterpratation.Monochrome2) &&
-        dicomImage.samplePerPixel === 1
+        (dicomObject.photometricInterpratation === PhotometricInterpratation.Monochrome1 ||
+          dicomObject.photometricInterpratation === PhotometricInterpratation.Monochrome2) &&
+        dicomObject.samplePerPixel === 1
       ) {
         const {
           rows,
@@ -102,7 +102,7 @@ export const ImageRawData = {
           highBit,
           pixelData,
           pixelDataVr,
-        } = dicomImage;
+        } = dicomObject;
         return ImageRawData._fromDataForImageGrayScale({
           rows,
           columns,
@@ -116,7 +116,7 @@ export const ImageRawData = {
         });
       }
     }
-    if (dicomImage.samplePerPixel === 3 && dicomImage.photometricInterpratation === PhotometricInterpratation.Rgb) {
+    if (dicomObject.samplePerPixel === 3 && dicomObject.photometricInterpratation === PhotometricInterpratation.Rgb) {
       const {
         rows,
         columns,
@@ -127,7 +127,7 @@ export const ImageRawData = {
         pixelRepresentation,
         pixelData,
         pixelDataVr,
-      } = dicomImage;
+      } = dicomObject;
       return ImageRawData._fromDataForImageRGB({
         rows,
         columns,
