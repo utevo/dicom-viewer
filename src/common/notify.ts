@@ -1,4 +1,4 @@
-import { toast, useToast } from "@chakra-ui/react";
+import { useToast } from "@chakra-ui/react";
 
 interface Notify {
   error: (message: string) => void;
