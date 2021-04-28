@@ -1,8 +1,6 @@
 import Konva from "konva";
 import React, { useEffect, useState } from "react";
 import { Group, Image as KonvaImage, Layer, Rect, Stage } from "react-konva";
-import { Image } from "../domain/Image";
-import { ImageData_ } from "../domain/ImageData";
 import { ViewPort } from "./types";
 
 interface Props {

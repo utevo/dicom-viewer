@@ -53,7 +53,6 @@ interface HaveKindProp {
 
 const filesFromDirectoryHandle = async (directoryHandle: FileSystemDirectoryHandle): Promise<FsFile[]> => {
   const files: FsFile[] = [];
-  console.log({ directoryHandle });
   for await (const entity of directoryHandle.entries()) {
     const [name, handle] = entity;
     if (((handle as unknown) as HaveKindProp).kind === "file") {

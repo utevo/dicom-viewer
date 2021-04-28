@@ -22,17 +22,20 @@ export interface DicomImage {
   pixelData: Uint8Array;
   pixelDataVr: "OB" | "OW";
 
-  windowCenter?: number;
-  windowWidth?: number;
+  voiLutModule: {
+    windowCenter?: number;
+    windowWidth?: number;
+    voiLutFunction?: string;
+  };
 }
 
-export const DicomImage_ = {
+export const DicomImage = {
   fromFile: async (file: File): Promise<Result<DicomImage, string>> => {
     const arrayBuffer = await file.arrayBuffer();
     const byteArray = new Uint8Array(arrayBuffer);
     const dataSet = parseDicom(byteArray);
 
-    return DicomImage_._fromDataSet(dataSet);
+    return DicomImage._fromDataSet(dataSet);
   },
   _fromDataSet: (dataSet: DataSet): Result<DicomImage, string> => {
     const transferSyntax = TransferSyntax_.fromTransferSyntaxUID(dataSet.string("x00020012"));
@@ -153,8 +156,24 @@ export const DicomImage_ = {
       pixelData[idx] = dataSet.byteArray[pixelDataElement.dataOffset + idx];
     }
 
-    const windowCenter = dataSet.floatString("x00281050");
-    const windowWidth = dataSet.floatString("x00281051");
+    const windowCenter: number | undefined = dataSet.floatString("x00281050");
+    const windowWidth: number | undefined = dataSet.floatString("x00281051");
+
+    const voiLutFunction =
+      dataSet.string("x00281056") != null
+        ? (dataSet.string("x00281056") as VoiLutFunction)
+        : windowCenter != null
+        ? VoiLutFunction.Linear
+        : undefined;
+
+    const voiLutSequenceElement = dataSet.elements.x00283010;
+
+    if (voiLutSequenceElement != null) {
+      return {
+        _tag: ResultTag.Err,
+        value: "Not supported voiLutSequence",
+      };
+    }
 
     return {
       _tag: ResultTag.Ok,
@@ -176,8 +195,11 @@ export const DicomImage_ = {
 
         pixelRepresentation,
 
-        windowCenter,
-        windowWidth,
+        voiLutModule: {
+          windowCenter,
+          windowWidth,
+          voiLutFunction,
+        },
 
         pixelData,
         pixelDataVr,
@@ -278,4 +300,10 @@ export enum PixelRepresentation {
 export enum PlanarConfiguration {
   Interlaced = 0,
   Separated = 1,
+}
+
+export enum VoiLutFunction {
+  Linear = "LINEAR",
+  LinearExact = "LINEAR_EXACT",
+  Sigmoid = "SIGMOID",
 }

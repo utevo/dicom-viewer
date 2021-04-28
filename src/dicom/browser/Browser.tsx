@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import { Tool, Tools as ToolsComponent } from "./Tools";
 import { Workspace } from "./Workspace";
-import { Image, Image_ } from "../domain/Image";
-import { DicomImage, DicomImage_ } from "../domain/DicomImage";
+import { Image } from "../domain/Image";
+import { DicomImage } from "../domain/DicomImage";
 import Konva from "konva";
 import { Position, ViewPort } from "./types";
 import { InputDirectory } from "../InputDirectory";
@@ -18,7 +18,7 @@ export const Browser = (): React.ReactElement => {
   const [prevMousePosition, setPrevMousePosition] = useState<Position>({ x: 0, y: 0 });
 
   const handleDicomImageChange = (newDicomImage: DicomImage) => {
-    const resultImage = Image_.fromDicomImage(newDicomImage);
+    const resultImage = Image.fromDicomImage(newDicomImage);
     if (resultImage._tag === ResultTag.Err) {
       console.log(resultImage.value)
       return;
@@ -82,7 +82,7 @@ export const Browser = (): React.ReactElement => {
   const [directoryHandle, setDirectoryHandle] = useState<FileSystemDirectoryHandle>();
 
   const handleFileChange = async (file: File): Promise<void> => {
-    const result = await DicomImage_.fromFile(file);
+    const result = await DicomImage.fromFile(file);
     if (result._tag === ResultTag.Err) {
       console.log(result.value)
       return;

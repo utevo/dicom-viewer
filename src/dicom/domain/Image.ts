@@ -56,7 +56,7 @@ interface DataForImageRGB {
   pixelDataVr: "OB" | "OW";
 }
 
-export const Image_ = {
+export const Image = {
   fromDicomImage: (dicomImage: DicomImage): Result<Image, string> => {
     if (dicomImage.compression === Compression.None) {
       if (
@@ -75,7 +75,7 @@ export const Image_ = {
           pixelData,
           pixelDataVr,
         } = dicomImage;
-        return Image_._fromDataForImageGrayScale({
+        return Image._fromDataForImageGrayScale({
           rows,
           columns,
           photometricInterpratation,
@@ -100,7 +100,7 @@ export const Image_ = {
         pixelData,
         pixelDataVr,
       } = dicomImage;
-      return Image_._fromDataForImageRGB({
+      return Image._fromDataForImageRGB({
         rows,
         columns,
         planarConfiguration: planarConfiguration ?? PlanarConfiguration.Interlaced,
