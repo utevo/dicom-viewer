@@ -1,7 +1,9 @@
+import { Result } from "../../adt";
 import { DicomImage, DicomImageGrayScale, DicomImageRgb, DicomImageTag } from "./DicomImage";
+import { PhotometricInterpratation } from "./DicomObject";
 
 export const ImageData_ = {
-  fromDicomImage(dicomImage: DicomImage): ImageData {
+  fromDicomImage(dicomImage: DicomImage): Result<ImageData, string> {
     switch (dicomImage._tag) {
       case DicomImageTag.GrayScale:
         return ImageData_._fromDicomImageGrayScale(dicomImage);
@@ -9,7 +11,11 @@ export const ImageData_ = {
         return ImageData_._fromDicomImageRgb(dicomImage);
     }
   },
-  _fromDicomImageGrayScale(dicomImage: DicomImageGrayScale): ImageData {
+
+  _fromDicomImageGrayScale(dicomImage: DicomImageGrayScale): Result<ImageData, string> {
+    if (dicomImage.photometricInterpratation == PhotometricInterpratation.Monochrome1) {
+      return Result.Err("Not supported photometricInterpratation");
+    }
     const imageData = new ImageData(dicomImage.columns, dicomImage.rows);
 
     // TODO: LUT
@@ -22,10 +28,15 @@ export const ImageData_ = {
       imageData.data[4 * idx + 3] = 255;
     }
 
-    return imageData;
+    return Result.Ok(imageData);
   },
-  _fromDicomImageRgb(dicomImage: DicomImageRgb): ImageData {
-    const imageData = new ImageData(new Uint8ClampedArray(dicomImage.pixelData.buffer), dicomImage.columns, dicomImage.rows);
-    return imageData;
+
+  _fromDicomImageRgb(dicomImage: DicomImageRgb): Result<ImageData, string> {
+    const imageData = new ImageData(
+      new Uint8ClampedArray(dicomImage.pixelData.buffer),
+      dicomImage.columns,
+      dicomImage.rows
+    );
+    return Result.Ok(imageData);
   },
 };

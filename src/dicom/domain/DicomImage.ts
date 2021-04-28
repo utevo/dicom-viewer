@@ -5,6 +5,8 @@ import {
   PhotometricInterpratation,
   PixelRepresentation,
   PlanarConfiguration,
+  VoiLutFunction,
+  VoiLutModule,
 } from "./DicomObject";
 
 export type DicomImage = DicomImageGrayScale | DicomImageRgb;
@@ -18,14 +20,17 @@ export interface DicomImageGrayScale {
 
   rows: number;
   columns: number;
-  pixelData: Uint8Array | Uint16Array | Uint32Array;
+  pixelData: PixelDataGrayScale;
+
+  photometricInterpratation: PhotometricInterpratation.Monochrome1 | PhotometricInterpratation.Monochrome2;
+  voiLutModule: VoiLutModule;
 }
 export interface DicomImageRgb {
   _tag: DicomImageTag.Rgb;
 
   rows: number;
   columns: number;
-  pixelData: Uint32Array;
+  pixelData: PixelDataRgb;
 }
 
 const DicomImageGrayScale = (props: Omit<DicomImageGrayScale, "_tag">): DicomImageGrayScale => {
@@ -56,6 +61,7 @@ interface DataFofDicomImageGrayScale {
 
   pixelData: Uint8Array;
   pixelDataVr: "OB" | "OW";
+  voiLutModule: Partial<VoiLutModule>;
 }
 
 interface DataForDicomImageRgb {
@@ -77,6 +83,7 @@ interface DataForDicomImageRgb {
 export const DicomImage = {
   GrayScale: DicomImageGrayScale,
   Rgb: DicomImageRgb,
+
   fromDicomObject: (dicomObject: DicomObject): Result<DicomImage, string> => {
     if (dicomObject.compression === Compression.None) {
       if (
@@ -94,8 +101,9 @@ export const DicomImage = {
           highBit,
           pixelData,
           pixelDataVr,
+          voiLutModule,
         } = dicomObject;
-        return DicomImage._fromDataForImageGrayScale({
+        return DicomImage._fromDataForDicomImageGrayScale({
           rows,
           columns,
           photometricInterpratation,
@@ -105,6 +113,7 @@ export const DicomImage = {
           highBit,
           pixelData,
           pixelDataVr,
+          voiLutModule,
         });
       }
     }
@@ -120,7 +129,7 @@ export const DicomImage = {
         pixelData,
         pixelDataVr,
       } = dicomObject;
-      return DicomImage._fromDataForImageRGB({
+      return DicomImage._fromDataForDicomImageRgb({
         rows,
         columns,
         planarConfiguration: planarConfiguration ?? PlanarConfiguration.Interlaced,
@@ -135,7 +144,7 @@ export const DicomImage = {
 
     return Result.Err("Couldn't convert to Image");
   },
-  _fromDataForImageGrayScale: ({
+  _fromDataForDicomImageGrayScale: ({
     rows,
     columns,
     photometricInterpratation,
@@ -145,6 +154,7 @@ export const DicomImage = {
     highBit,
     pixelData,
     pixelDataVr,
+    voiLutModule: voiLutModulePartial,
   }: DataFofDicomImageGrayScale): Result<DicomImageGrayScale, string> => {
     if (pixelDataVr === "OW" && bitsAllocated !== 16) {
       return Result.Err("Not supported pixelData VR");
@@ -158,6 +168,19 @@ export const DicomImage = {
     if (pixelRepresentation === PixelRepresentation.Signed) {
       return Result.Err("Not supported pixelRepresentation");
     }
+
+    const { voiLutFunction, windowCenter, windowWidth } = voiLutModulePartial;
+    if (windowCenter == null || windowWidth == null) {
+      return Result.Err("DicomImage must contain windowCenter and windowWith");
+    }
+    if (voiLutFunction != null && voiLutFunction != VoiLutFunction.Linear) {
+      return Result.Err("Not supported voiLutFunction");
+    }
+    const voiLutModule = {
+      windowCenter: windowCenter,
+      windowWidth: windowCenter,
+      voiLutFunction: VoiLutFunction.Linear,
+    };
 
     let imagePixelData;
     switch (bitsAllocated) {
@@ -179,10 +202,13 @@ export const DicomImage = {
         rows,
         columns,
         pixelData: imagePixelData,
+
+        photometricInterpratation,
+        voiLutModule,
       })
     );
   },
-  _fromDataForImageRGB: ({
+  _fromDataForDicomImageRgb: ({
     rows,
     columns,
     planarConfiguration,
@@ -222,3 +248,7 @@ export const DicomImage = {
     );
   },
 };
+
+type PixelData = PixelDataGrayScale | PixelDataRgb;
+type PixelDataGrayScale = Uint8Array | Int8Array | Uint16Array | Int16Array | Uint32Array | Int32Array;
+type PixelDataRgb = Uint32Array;

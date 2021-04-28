@@ -18,12 +18,18 @@ export const Browser = (): React.ReactElement => {
   const [prevMousePosition, setPrevMousePosition] = useState<Position>({ x: 0, y: 0 });
 
   const handleDicomObjectChange = (newDicomObject: DicomObject) => {
-    const resultImage = DicomImage.fromDicomObject(newDicomObject);
-    if (resultImage._tag === ResultTag.Err) {
-      console.log(resultImage.value);
+    const dicomImage = DicomImage.fromDicomObject(newDicomObject);
+    if (dicomImage._tag === ResultTag.Err) {
+      console.error(dicomImage.value);
       return;
     }
-    setImageData(ImageData_.fromDicomImage(resultImage.value));
+
+    const imageData = ImageData_.fromDicomImage(dicomImage.value);
+    if (imageData._tag === ResultTag.Err) {
+      console.error(imageData);
+      return;
+    }
+    setImageData(imageData.value);
     setViewPort(DEFAULT_VIEWPORT);
   };
 
@@ -84,7 +90,7 @@ export const Browser = (): React.ReactElement => {
   const handleFileChange = async (file: File): Promise<void> => {
     const result = await DicomObject.fromFile(file);
     if (result._tag === ResultTag.Err) {
-      console.log(result.value);
+      console.error(result.value);
       return;
     }
     handleDicomObjectChange(result.value);

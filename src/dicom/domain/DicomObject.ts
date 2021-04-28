@@ -1,4 +1,5 @@
 import { DataSet, parseDicom } from "dicom-parser";
+import { interpolateAs } from "next/dist/next-server/lib/router/router";
 import { Result } from "../../adt";
 
 export interface DicomObject {
@@ -22,11 +23,7 @@ export interface DicomObject {
   pixelData: Uint8Array;
   pixelDataVr: "OB" | "OW";
 
-  voiLutModule: {
-    windowCenter?: number;
-    windowWidth?: number;
-    voiLutFunction?: string;
-  };
+  voiLutModule: Partial<VoiLutModule>;
 }
 
 export const DicomObject = {
@@ -117,8 +114,8 @@ export const DicomObject = {
       pixelData[idx] = dataSet.byteArray[pixelDataElement.dataOffset + idx];
     }
 
-    const windowCenter: number | undefined = dataSet.floatString("x00281050");
-    const windowWidth: number | undefined = dataSet.floatString("x00281051");
+    const windowCenter = dataSet.floatString("x00281050") as number | undefined;
+    const windowWidth = dataSet.floatString("x00281051") as number | undefined;
 
     const voiLutFunction =
       dataSet.string("x00281056") != null
@@ -255,6 +252,12 @@ export enum PixelRepresentation {
 export enum PlanarConfiguration {
   Interlaced = 0,
   Separated = 1,
+}
+
+export interface VoiLutModule {
+  windowCenter: number;
+  windowWidth: number;
+  voiLutFunction: string;
 }
 
 export enum VoiLutFunction {
