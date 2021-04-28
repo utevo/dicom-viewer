@@ -7,51 +7,43 @@ import {
   PlanarConfiguration,
 } from "./DicomObject";
 
-export type ImageRawData = ImageRawDataGrayScale | ImageRawDataRgb;
-export enum ImageRawDataTag {
+export type DicomImage = DicomImageGrayScale | DicomImageRgb;
+export enum DicomImageTag {
   GrayScale = "grayScale",
   Rgb = "rgb",
 }
 
-export interface ImageRawDataGrayScale {
-  _tag: ImageRawDataTag.GrayScale;
+export interface DicomImageGrayScale {
+  _tag: DicomImageTag.GrayScale;
 
   rows: number;
   columns: number;
   pixelData: Uint8Array | Uint16Array | Uint32Array;
 }
-export interface ImageRawDataRgb {
-  _tag: ImageRawDataTag.Rgb;
+export interface DicomImageRgb {
+  _tag: DicomImageTag.Rgb;
 
   rows: number;
   columns: number;
   pixelData: Uint32Array;
 }
 
-const ImageRawDataGrayScale = ({
-  rows,
-  columns,
-  pixelData,
-}: Omit<ImageRawDataGrayScale, "_tag">): ImageRawDataGrayScale => {
+const DicomImageGrayScale = (props: Omit<DicomImageGrayScale, "_tag">): DicomImageGrayScale => {
   return {
-    _tag: ImageRawDataTag.GrayScale,
+    _tag: DicomImageTag.GrayScale,
 
-    rows,
-    columns,
-    pixelData,
+    ...props,
   };
 };
-const ImageRawDataRgb = ({ rows, columns, pixelData }: Omit<ImageRawDataRgb, "_tag">): ImageRawDataRgb => {
+const DicomImageRgb = (props: Omit<DicomImageRgb, "_tag">): DicomImageRgb => {
   return {
-    _tag: ImageRawDataTag.Rgb,
+    _tag: DicomImageTag.Rgb,
 
-    rows,
-    columns,
-    pixelData,
+    ...props,
   };
 };
 
-interface DataForImageGrayScale {
+interface DataFofDicomImageGrayScale {
   rows: number;
   columns: number;
 
@@ -66,7 +58,7 @@ interface DataForImageGrayScale {
   pixelDataVr: "OB" | "OW";
 }
 
-interface DataForImageRGB {
+interface DataForDicomImageRgb {
   rows: number;
   columns: number;
 
@@ -82,10 +74,10 @@ interface DataForImageRGB {
   pixelDataVr: "OB" | "OW";
 }
 
-export const ImageRawData = {
-  GrayScale: ImageRawDataGrayScale,
-  Rgb: ImageRawDataRgb,
-  fromDicomObject: (dicomObject: DicomObject): Result<ImageRawData, string> => {
+export const DicomImage = {
+  GrayScale: DicomImageGrayScale,
+  Rgb: DicomImageRgb,
+  fromDicomObject: (dicomObject: DicomObject): Result<DicomImage, string> => {
     if (dicomObject.compression === Compression.None) {
       if (
         (dicomObject.photometricInterpratation === PhotometricInterpratation.Monochrome1 ||
@@ -103,7 +95,7 @@ export const ImageRawData = {
           pixelData,
           pixelDataVr,
         } = dicomObject;
-        return ImageRawData._fromDataForImageGrayScale({
+        return DicomImage._fromDataForImageGrayScale({
           rows,
           columns,
           photometricInterpratation,
@@ -128,7 +120,7 @@ export const ImageRawData = {
         pixelData,
         pixelDataVr,
       } = dicomObject;
-      return ImageRawData._fromDataForImageRGB({
+      return DicomImage._fromDataForImageRGB({
         rows,
         columns,
         planarConfiguration: planarConfiguration ?? PlanarConfiguration.Interlaced,
@@ -153,7 +145,7 @@ export const ImageRawData = {
     highBit,
     pixelData,
     pixelDataVr,
-  }: DataForImageGrayScale): Result<ImageRawDataGrayScale, string> => {
+  }: DataFofDicomImageGrayScale): Result<DicomImageGrayScale, string> => {
     if (pixelDataVr === "OW" && bitsAllocated !== 16) {
       return Result.Err("Not supported pixelData VR");
     }
@@ -183,7 +175,7 @@ export const ImageRawData = {
     }
 
     return Result.Ok(
-      ImageRawData.GrayScale({
+      DicomImage.GrayScale({
         rows,
         columns,
         pixelData: imagePixelData,
@@ -200,7 +192,7 @@ export const ImageRawData = {
     pixelRepresentation,
     pixelData,
     pixelDataVr,
-  }: DataForImageRGB): Result<ImageRawDataRgb, string> => {
+  }: DataForDicomImageRgb): Result<DicomImageRgb, string> => {
     if (bitsAllocated !== 8 || bitsStored !== 8 || highBit !== 7) {
       return Result.Err("Not supported combination of bitsAllocated, bitsStored, highBit");
     }
@@ -222,7 +214,7 @@ export const ImageRawData = {
     }
 
     return Result.Ok(
-      ImageRawData.Rgb({
+      DicomImage.Rgb({
         rows,
         columns,
         pixelData: rgbPixelData,

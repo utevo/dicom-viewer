@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Tool, Tools as ToolsComponent } from "./Tools";
 import { Workspace } from "./Workspace";
-import { ImageRawData } from "../domain/ImageRawData";
+import { DicomImage } from "../domain/DicomImage";
 import { DicomObject } from "../domain/DicomObject";
 import Konva from "konva";
 import { Position, ViewPort } from "./types";
@@ -18,12 +18,12 @@ export const Browser = (): React.ReactElement => {
   const [prevMousePosition, setPrevMousePosition] = useState<Position>({ x: 0, y: 0 });
 
   const handleDicomObjectChange = (newDicomObject: DicomObject) => {
-    const resultImage = ImageRawData.fromDicomObject(newDicomObject);
+    const resultImage = DicomImage.fromDicomObject(newDicomObject);
     if (resultImage._tag === ResultTag.Err) {
       console.log(resultImage.value);
       return;
     }
-    setImageData(ImageData_.fromImage(resultImage.value));
+    setImageData(ImageData_.fromDicomImage(resultImage.value));
     setViewPort(DEFAULT_VIEWPORT);
   };
 
