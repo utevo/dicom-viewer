@@ -9,8 +9,11 @@ import { InputDirectory } from "../InputDirectory";
 import { Files } from "./Files";
 import { ResultTag } from "../../adt";
 import { ImageData_ } from "../domain/ImageData";
+import { useNotify } from "../../notify";
 
 export const Browser = (): React.ReactElement => {
+  const notify = useNotify();
+
   const [imageData, setImageData] = useState<ImageData>();
   const [viewPort, setViewPort] = useState<ViewPort>(DEFAULT_VIEWPORT);
   const [tool, setTool] = useState<Tool>(Tool.Nothing);
@@ -20,13 +23,13 @@ export const Browser = (): React.ReactElement => {
   const handleDicomObjectChange = (newDicomObject: DicomObject) => {
     const dicomImage = DicomImage.fromDicomObject(newDicomObject);
     if (dicomImage._tag === ResultTag.Err) {
-      console.error(dicomImage.value);
+      notify.error(dicomImage.value);
       return;
     }
 
     const imageData = ImageData_.fromDicomImage(dicomImage.value);
     if (imageData._tag === ResultTag.Err) {
-      console.error(imageData);
+      notify.error(imageData.value);
       return;
     }
     setImageData(imageData.value);
@@ -90,7 +93,7 @@ export const Browser = (): React.ReactElement => {
   const handleFileChange = async (file: File): Promise<void> => {
     const result = await DicomObject.fromFile(file);
     if (result._tag === ResultTag.Err) {
-      console.error(result.value);
+      notify.error(result.value);
       return;
     }
     handleDicomObjectChange(result.value);
