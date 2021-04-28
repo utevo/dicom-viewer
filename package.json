@@ -6,7 +6,11 @@
     "dev": "next dev",
     "dev-https": "node server.js",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "lint": "eslint --fix 'src/**/*.{ts,tsx,js,jsx}'",
+    "lint-check": "eslint 'src/**/*.{ts,tsx,js,jsx}' --max-warnings 0",
+    "format": "prettier --write 'src/**/*.{ts,tsx,js,jsx}'",
+    "format-check": "prettier --check 'src/**/*.{ts,tsx,js,jsx}'"
   },
   "dependencies": {
     "@chakra-ui/react": "^1.6.0",
