@@ -1,4 +1,4 @@
-import { ResultTag } from "../adt";
+import { ResultTag } from "../common/adt";
 import { DicomObject } from "./domain/DicomObject";
 
 interface Props {

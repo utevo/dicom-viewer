@@ -1,6 +1,6 @@
 import { DataSet, parseDicom } from "dicom-parser";
 import { interpolateAs } from "next/dist/next-server/lib/router/router";
-import { Result } from "../../adt";
+import { Result } from "../../common/adt";
 
 export interface DicomObject {
   compression: Compression;

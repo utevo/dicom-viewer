@@ -1,4 +1,4 @@
-import { Result } from "../../adt";
+import { Result } from "../../common/adt";
 import {
   Compression,
   DicomObject,

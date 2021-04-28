@@ -1,4 +1,4 @@
-import { Result } from "../../adt";
+import { Result } from "../../common/adt";
 import { DicomImage, DicomImageGrayScale, DicomImageRgb, DicomImageTag } from "./DicomImage";
 import { PhotometricInterpratation } from "./DicomObject";
 

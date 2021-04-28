@@ -7,9 +7,9 @@ import Konva from "konva";
 import { Position, ViewPort } from "./types";
 import { InputDirectory } from "../InputDirectory";
 import { Files } from "./Files";
-import { ResultTag } from "../../adt";
+import { ResultTag } from "../../common/adt";
 import { ImageData_ } from "../domain/ImageData";
-import { useNotify } from "../../notify";
+import { useNotify } from "../../common/notify";
 
 export const Browser = (): React.ReactElement => {
   const notify = useNotify();
