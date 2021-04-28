@@ -1,21 +1,24 @@
 import React, { useState } from "react";
 import { Tool, Tools as ToolsComponent } from "./Tools";
 import { Workspace } from "./Workspace";
-import { DicomImage } from "../domain/DicomImage";
+import { DicomImage, DicomImageTag } from "../domain/DicomImage";
 import { DicomObject } from "../domain/DicomObject";
 import Konva from "konva";
-import { Position, ViewPort } from "./types";
+import { Position, ViewPort, VoiLutModuleOffset } from "./types";
 import { InputDirectory } from "../InputDirectory";
 import { Files } from "./Files";
 import { ResultTag } from "../../common/adt";
 import { ImageData_ } from "../domain/ImageData";
 import { useNotify } from "../../common/notify";
+import { Info } from "./Info";
 
 export const Browser = (): React.ReactElement => {
   const notify = useNotify();
 
+  const [dicomImage, setDicomImage] = useState<DicomImage>();
   const [imageData, setImageData] = useState<ImageData>();
-  const [viewPort, setViewPort] = useState<ViewPort>(DEFAULT_VIEWPORT);
+  const [viewPort, setViewPort] = useState<ViewPort>(ViewPort.default());
+  const [voiLutModuleOffset, setVoiLutModuleOffset] = useState<VoiLutModuleOffset>(VoiLutModuleOffset.default());
   const [tool, setTool] = useState<Tool>(Tool.Nothing);
   const [buttonDown, setButtonDown] = useState<boolean>(false);
   const [prevMousePosition, setPrevMousePosition] = useState<Position>({ x: 0, y: 0 });
@@ -27,13 +30,15 @@ export const Browser = (): React.ReactElement => {
       return;
     }
 
-    const imageData = ImageData_.fromDicomImage(dicomImage.value);
+    const imageData = ImageData_.fromDicomImage(dicomImage.value, voiLutModuleOffset);
     if (imageData._tag === ResultTag.Err) {
       notify.error(imageData.value);
       return;
     }
+
+    setDicomImage(dicomImage.value);
     setImageData(imageData.value);
-    setViewPort(DEFAULT_VIEWPORT);
+    setViewPort(ViewPort.default());
   };
 
   const handleMouseDown = (evt: Konva.KonvaEventObject<MouseEvent>): void => {
@@ -114,8 +119,11 @@ export const Browser = (): React.ReactElement => {
       />
       <InputDirectory onDirectoryHandleChange={setDirectoryHandle} />
       {directoryHandle != null && <Files directoryHandle={directoryHandle} onFileChange={handleFileChange} />}
+      <Info
+        viewPort={viewPort}
+        voiLutModule={dicomImage?._tag === DicomImageTag.GrayScale ? dicomImage.voiLutModule : undefined}
+        voiLutModuleOffset={voiLutModuleOffset}
+      />
     </div>
   );
 };
-
-const DEFAULT_VIEWPORT = { position: { x: 0, y: 0 }, rotation: 0 };

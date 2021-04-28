@@ -177,8 +177,8 @@ export const DicomImage = {
       return Result.Err("Not supported voiLutFunction");
     }
     const voiLutModule = {
-      windowCenter: windowCenter,
-      windowWidth: windowCenter,
+      windowCenter,
+      windowWidth,
       voiLutFunction: VoiLutFunction.Linear,
     };
 
