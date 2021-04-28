@@ -1,15 +1,15 @@
 import { useState } from "react";
 import { DicomImage } from "../dicom/domain/DicomImage";
-import { Image } from "../dicom/domain/Image";
+import { ImageRawData } from "../dicom/domain/ImageRawData";
 import { ImageViewer } from "../dicom/ImageViewer";
 import { InputDicomImage } from "../dicom/InputDicomImage";
-import { ResultTag } from "../types";
+import { ResultTag } from "../adt";
 
 const Home = (): React.ReactElement => {
-  const [image, setImage] = useState<Image>();
+  const [image, setImage] = useState<ImageRawData>();
 
   const handleImport = (dicomImage: DicomImage) => {
-    const result = Image.fromDicomImage(dicomImage);
+    const result = ImageRawData.fromDicomImage(dicomImage);
     if (result._tag === ResultTag.Err) {
       console.log(result.value);
       return;

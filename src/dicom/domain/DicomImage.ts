@@ -1,5 +1,5 @@
 import { DataSet, parseDicom } from "dicom-parser";
-import { Result, ResultTag } from "../../types";
+import { Result } from "../../adt";
 
 export interface DicomImage {
   compression: Compression;
@@ -43,32 +43,18 @@ export const DicomImage = {
     const [compression, endianness] = TransferSyntax_.toCompressionAndEndianness(transferSyntax);
 
     const rows = dataSet.uint16("x00280010");
-    if (rows == null)
-      return {
-        _tag: ResultTag.Err,
-        value: "DicomImage need to have rows",
-      };
+    if (rows == null) return Result.Err("DicomImage need to have rows");
 
     const columns = dataSet.uint16("x00280011");
-    if (columns == null)
-      return {
-        _tag: ResultTag.Err,
-        value: "DicomImage need to have columns",
-      };
-
+    if (columns == null) {
+      return Result.Err("DicomImage need to have columns");
+    }
     const samplePerPixel = dataSet.uint16("x00280002");
-    if (samplePerPixel == null)
-      return {
-        _tag: ResultTag.Err,
-        value: "DicomImage need to have samplePerPixel",
-      };
+    if (samplePerPixel == null) return Result.Err("DicomImage need to have samplePerPixel");
 
     const photometricInterpratationValue = dataSet.string("x00280004");
     if (photometricInterpratationValue == null) {
-      return {
-        _tag: ResultTag.Err,
-        value: "DicomImage need to have photometricInterpratation",
-      };
+      return Result.Err("DicomImage need to have photometricInterpratation");
     }
 
     const photometricInterpratation = photometricInterpratationValue as PhotometricInterpratation; // ToDo: Need validation
@@ -85,39 +71,20 @@ export const DicomImage = {
         break;
 
       default:
-        return {
-          _tag: ResultTag.Err,
-          value: "DicomImage have incorrect planarConfiguration",
-        };
+        return Result.Err("DicomImage have incorrect planarConfiguration");
     }
 
     const bitsAllocated = dataSet.uint16("x00280100");
-    if (bitsAllocated == null)
-      return {
-        _tag: ResultTag.Err,
-        value: "DicomImage need to have bitsAllocated",
-      };
+    if (bitsAllocated == null) return Result.Err("DicomImage need to have bitsAllocated");
 
     const bitsStored = dataSet.uint16("x00280101");
-    if (bitsStored == null)
-      return {
-        _tag: ResultTag.Err,
-        value: "DicomImage need to have bitsStored",
-      };
+    if (bitsStored == null) return Result.Err("DicomImage need to have bitsStored");
 
     const highBit = dataSet.uint16("x00280102");
-    if (highBit == null)
-      return {
-        _tag: ResultTag.Err,
-        value: "DicomImage need to have highBit",
-      };
+    if (highBit == null) return Result.Err("DicomImage need to have highBit");
 
     const pixelRepresentationValue = dataSet.uint16("x00280103");
-    if (pixelRepresentationValue == null)
-      return {
-        _tag: ResultTag.Err,
-        value: "DicomImage need to have pixelRepresentationValue",
-      };
+    if (pixelRepresentationValue == null) return Result.Err("DicomImage need to have pixelRepresentationValue");
 
     let pixelRepresentation: PixelRepresentation;
     switch (pixelRepresentationValue) {
@@ -128,10 +95,7 @@ export const DicomImage = {
         pixelRepresentation = PixelRepresentation.Signed;
         break;
       default:
-        return {
-          _tag: ResultTag.Err,
-          value: "Unexpected value of pixelRepresentation",
-        };
+        return Result.Err("Unexpected value of pixelRepresentation");
     }
 
     const pixelDataElement = dataSet.elements.x7fe00010;
@@ -146,10 +110,7 @@ export const DicomImage = {
         pixelDataVr = "OW";
         break;
       default:
-        return {
-          _tag: ResultTag.Err,
-          value: "Unexpected pixelData VR",
-        };
+        return Result.Err("Unexpected pixelData VR");
     }
     const pixelData = new Uint8Array(pixelDataElement.length);
     for (let idx = 0; idx < pixelDataElement.length; idx += 1) {
@@ -169,42 +130,36 @@ export const DicomImage = {
     const voiLutSequenceElement = dataSet.elements.x00283010;
 
     if (voiLutSequenceElement != null) {
-      return {
-        _tag: ResultTag.Err,
-        value: "Not supported voiLutSequence",
-      };
+      return Result.Err("Not supported voiLutSequence");
     }
 
-    return {
-      _tag: ResultTag.Ok,
-      value: {
-        compression,
-        endianness,
+    return Result.Ok({
+      compression,
+      endianness,
 
-        rows,
-        columns,
+      rows,
+      columns,
 
-        samplePerPixel,
-        photometricInterpratation,
+      samplePerPixel,
+      photometricInterpratation,
 
-        planarConfiguration,
+      planarConfiguration,
 
-        bitsAllocated,
-        bitsStored,
-        highBit,
+      bitsAllocated,
+      bitsStored,
+      highBit,
 
-        pixelRepresentation,
+      pixelRepresentation,
 
-        voiLutModule: {
-          windowCenter,
-          windowWidth,
-          voiLutFunction,
-        },
-
-        pixelData,
-        pixelDataVr,
+      voiLutModule: {
+        windowCenter,
+        windowWidth,
+        voiLutFunction,
       },
-    };
+
+      pixelData,
+      pixelDataVr,
+    });
   },
 };
 

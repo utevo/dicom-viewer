@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { Image as KonvaImage, Layer, Stage } from "react-konva";
-import { Image } from "./domain/Image";
+import { ImageRawData } from "./domain/ImageRawData";
 import { ImageData_ } from "./domain/ImageData";
 
 interface Props {
-  image: Image;
+  image: ImageRawData;
   width: number;
   height: number;
 }

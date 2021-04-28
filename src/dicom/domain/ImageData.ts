@@ -1,15 +1,15 @@
-import { Image, ImageGrayScale, ImageRGB } from "./Image";
+import { ImageRawData, ImageRawDataGrayScale, ImageRawDataRgb, ImageRawDataTag } from "./ImageRawData";
 
 export const ImageData_ = {
-  fromImage(image: Image): ImageData {
-    switch (image._tag) {
-      case "grayScale":
-        return ImageData_._fromImageGrayScale(image);
-      case "rgb":
-        return ImageData_._fromImageRGB(image);
+  fromImage(imageRawData: ImageRawData): ImageData {
+    switch (imageRawData._tag) {
+      case ImageRawDataTag.GrayScale:
+        return ImageData_._fromImageGrayScale(imageRawData);
+      case ImageRawDataTag.Rgb:
+        return ImageData_._fromImageRGB(imageRawData);
     }
   },
-  _fromImageGrayScale(image: ImageGrayScale): ImageData {
+  _fromImageGrayScale(image: ImageRawDataGrayScale): ImageData {
     const imageData = new ImageData(image.columns, image.rows);
 
     // TODO: LUT
@@ -24,7 +24,7 @@ export const ImageData_ = {
 
     return imageData;
   },
-  _fromImageRGB(image: ImageRGB): ImageData {
+  _fromImageRGB(image: ImageRawDataRgb): ImageData {
     const imageData = new ImageData(new Uint8ClampedArray(image.pixelData.buffer), image.columns, image.rows);
     return imageData;
   },

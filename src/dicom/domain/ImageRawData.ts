@@ -1,4 +1,4 @@
-import { Result, ResultTag } from "../../types";
+import { Result } from "../../adt";
 import {
   Compression,
   DicomImage,
@@ -7,23 +7,49 @@ import {
   PlanarConfiguration,
 } from "./DicomImage";
 
-export type Image = ImageGrayScale | ImageRGB;
+export type ImageRawData = ImageRawDataGrayScale | ImageRawDataRgb;
+export enum ImageRawDataTag {
+  GrayScale = "grayScale",
+  Rgb = "rgb",
+}
 
-export interface ImageGrayScale {
-  _tag: "grayScale";
+export interface ImageRawDataGrayScale {
+  _tag: ImageRawDataTag.GrayScale;
 
   rows: number;
   columns: number;
   pixelData: Uint8Array | Uint16Array | Uint32Array;
 }
-
-export interface ImageRGB {
-  _tag: "rgb";
+export interface ImageRawDataRgb {
+  _tag: ImageRawDataTag.Rgb;
 
   rows: number;
   columns: number;
   pixelData: Uint32Array;
 }
+
+const ImageRawDataGrayScale = ({
+  rows,
+  columns,
+  pixelData,
+}: Omit<ImageRawDataGrayScale, "_tag">): ImageRawDataGrayScale => {
+  return {
+    _tag: ImageRawDataTag.GrayScale,
+
+    rows,
+    columns,
+    pixelData,
+  };
+};
+const ImageRawDataRgb = ({ rows, columns, pixelData }: Omit<ImageRawDataRgb, "_tag">): ImageRawDataRgb => {
+  return {
+    _tag: ImageRawDataTag.Rgb,
+
+    rows,
+    columns,
+    pixelData,
+  };
+};
 
 interface DataForImageGrayScale {
   rows: number;
@@ -56,8 +82,10 @@ interface DataForImageRGB {
   pixelDataVr: "OB" | "OW";
 }
 
-export const Image = {
-  fromDicomImage: (dicomImage: DicomImage): Result<Image, string> => {
+export const ImageRawData = {
+  GrayScale: ImageRawDataGrayScale,
+  Rgb: ImageRawDataRgb,
+  fromDicomImage: (dicomImage: DicomImage): Result<ImageRawData, string> => {
     if (dicomImage.compression === Compression.None) {
       if (
         (dicomImage.photometricInterpratation === PhotometricInterpratation.Monochrome1 ||
@@ -75,7 +103,7 @@ export const Image = {
           pixelData,
           pixelDataVr,
         } = dicomImage;
-        return Image._fromDataForImageGrayScale({
+        return ImageRawData._fromDataForImageGrayScale({
           rows,
           columns,
           photometricInterpratation,
@@ -100,7 +128,7 @@ export const Image = {
         pixelData,
         pixelDataVr,
       } = dicomImage;
-      return Image._fromDataForImageRGB({
+      return ImageRawData._fromDataForImageRGB({
         rows,
         columns,
         planarConfiguration: planarConfiguration ?? PlanarConfiguration.Interlaced,
@@ -113,10 +141,7 @@ export const Image = {
       });
     }
 
-    return {
-      _tag: ResultTag.Err,
-      value: "Couldn't convert to Image",
-    };
+    return Result.Err("Couldn't convert to Image");
   },
   _fromDataForImageGrayScale: ({
     rows,
@@ -128,15 +153,19 @@ export const Image = {
     highBit,
     pixelData,
     pixelDataVr,
-  }: DataForImageGrayScale): Result<ImageGrayScale, string> => {
-    if (pixelDataVr === "OW" && bitsAllocated !== 16)
-      return { _tag: ResultTag.Err, value: "Not supported pixelData VR" };
-    if (highBit + 1 !== bitsStored)
-      return { _tag: ResultTag.Err, value: "Not supported combination of hightBit and bitsStored" };
-    if (photometricInterpratation === PhotometricInterpratation.Monochrome1)
-      return { _tag: ResultTag.Err, value: "Not supported photometricInterpratation" };
-    if (pixelRepresentation === PixelRepresentation.Signed)
-      return { _tag: ResultTag.Err, value: "Not supported pixelRepresentation" };
+  }: DataForImageGrayScale): Result<ImageRawDataGrayScale, string> => {
+    if (pixelDataVr === "OW" && bitsAllocated !== 16) {
+      return Result.Err("Not supported pixelData VR");
+    }
+    if (highBit + 1 !== bitsStored) {
+      return Result.Err("Not supported combination of hightBit and bitsStored");
+    }
+    if (photometricInterpratation === PhotometricInterpratation.Monochrome1) {
+      return Result.Err("Not supported photometricInterpratation");
+    }
+    if (pixelRepresentation === PixelRepresentation.Signed) {
+      return Result.Err("Not supported pixelRepresentation");
+    }
 
     let imagePixelData;
     switch (bitsAllocated) {
@@ -150,19 +179,16 @@ export const Image = {
         imagePixelData = new Uint32Array(pixelData.buffer);
         break;
       default:
-        return { _tag: ResultTag.Err, value: "Not supported bitsAllocated" };
+        return Result.Err("Not supported bitsAllocated");
     }
 
-    return {
-      _tag: ResultTag.Ok,
-      value: {
-        _tag: "grayScale",
-
+    return Result.Ok(
+      ImageRawData.GrayScale({
         rows,
         columns,
         pixelData: imagePixelData,
-      },
-    };
+      })
+    );
   },
   _fromDataForImageRGB: ({
     rows,
@@ -174,21 +200,15 @@ export const Image = {
     pixelRepresentation,
     pixelData,
     pixelDataVr,
-  }: DataForImageRGB): Result<ImageRGB, string> => {
+  }: DataForImageRGB): Result<ImageRawDataRgb, string> => {
     if (bitsAllocated !== 8 || bitsStored !== 8 || highBit !== 7) {
-      return {
-        _tag: ResultTag.Err,
-        value: "Not supported combination of bitsAllocated, bitsStored, highBit",
-      };
+      return Result.Err("Not supported combination of bitsAllocated, bitsStored, highBit");
     }
     if (planarConfiguration === PlanarConfiguration.Separated) {
-      return {
-        _tag: ResultTag.Err,
-        value: "Not supported planarConfiguration (separated)",
-      };
+      return Result.Err("Not supported planarConfiguration (separated)");
     }
     if (pixelRepresentation === PixelRepresentation.Signed) {
-      return { _tag: ResultTag.Err, value: "Not supported pixelRepresentation" };
+      return Result.Err("Not supported pixelRepresentation");
     }
 
     const pixelsCount = rows * columns;
@@ -201,15 +221,12 @@ export const Image = {
         0xff000000;
     }
 
-    return {
-      _tag: ResultTag.Ok,
-      value: {
-        _tag: "rgb",
-
+    return Result.Ok(
+      ImageRawData.Rgb({
         rows,
         columns,
         pixelData: rgbPixelData,
-      },
-    };
+      })
+    );
   },
 };
