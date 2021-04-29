@@ -5,7 +5,7 @@ interface Props {
   onFileChange: (file: File) => void;
 }
 
-export const Files = ({ directoryHandle, onFileChange }: Props): React.ReactElement => {
+export const FilesController = ({ directoryHandle, onFileChange }: Props): React.ReactElement => {
   const [files, setFiles] = useState<FsFile[]>();
 
   useEffect(() => {

@@ -1,16 +1,16 @@
 import React, { useEffect, useState } from "react";
-import { Tool, Tools as ToolsComponent } from "./Tools";
+import { Tool, ToolsController as ToolsComponent } from "./Tools";
 import { Workspace } from "./Workspace";
 import { DicomImage, DicomImageTag } from "../domain/DicomImage";
 import { DicomObject } from "../domain/DicomObject";
 import Konva from "konva";
 import { Position, ViewPort, WindowingOffset } from "./types";
 import { InputDirectory } from "../InputDirectory";
-import { Files } from "./Files";
+import { FilesController } from "./Files";
 import { ResultTag } from "../../common/adt";
 import { ImageData_ } from "../domain/ImageData";
 import { useNotify } from "../../common/notify";
-import { Info } from "./Info";
+import { InfoViewer } from "./Info";
 
 export const Browser = (): React.ReactElement => {
   const notify = useNotify();
@@ -147,8 +147,8 @@ export const Browser = (): React.ReactElement => {
         onMouseLeave={handleMouseLeave}
       />
       <InputDirectory onDirectoryHandleChange={setDirectoryHandle} />
-      {directoryHandle != null && <Files directoryHandle={directoryHandle} onFileChange={handleFileChange} />}
-      <Info
+      {directoryHandle != null && <FilesController directoryHandle={directoryHandle} onFileChange={handleFileChange} />}
+      <InfoViewer
         viewPort={viewPort}
         voiLutModule={dicomImage?._tag === DicomImageTag.GrayScale ? dicomImage.voiLutModule : undefined}
         voiLutModuleOffset={windowingOffset}

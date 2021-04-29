@@ -7,7 +7,7 @@ interface Props {
   voiLutModuleOffset?: WindowingOffset;
 }
 
-export const Info = ({ viewPort, voiLutModule, voiLutModuleOffset }: Props): React.ReactElement => {
+export const InfoViewer = ({ viewPort, voiLutModule, voiLutModuleOffset }: Props): React.ReactElement => {
   return (
     <ul>
       <li>View Port: {JSON.stringify(viewPort)}</li>

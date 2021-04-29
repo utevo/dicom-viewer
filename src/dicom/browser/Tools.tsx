@@ -3,7 +3,7 @@ interface Props {
   onToolChange: (newTool: Tool) => void;
 }
 
-export const Tools = ({ tool, onToolChange }: Props): React.ReactElement => {
+export const ToolsController = ({ tool, onToolChange }: Props): React.ReactElement => {
   return (
     // eslint-disable-next-line jsx-a11y/no-onchange
     <select value={tool} onChange={(e) => onToolChange(e.target.value as Tool)}>
