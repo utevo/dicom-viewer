@@ -7,7 +7,7 @@ import { Workspace } from "./Workspace";
 import { DicomImage } from "../domain/DicomImage";
 import { DicomObject } from "../domain/DicomObject";
 import { Position, ViewPort, WindowingOffset } from "./types";
-import { InputDirectory } from "../InputDirectory";
+import { InputDirectory } from "./InputDirectory";
 import { FilesController } from "./Files";
 import { ResultTag } from "../../common/adt";
 import { ImageData_ } from "../domain/ImageData";
