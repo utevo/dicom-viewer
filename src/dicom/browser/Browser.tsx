@@ -140,7 +140,7 @@ export const Browser = ({ className }: Props): React.ReactElement => {
 
   return (
     <div className={clsx("w-full h-full flex", className)}>
-      <div className="w-80 flex flex-col items-center m-3 p-1 bg-white rounded-2xl shadow-lg space-y-3 overflow-hidden">
+      <div className="w-80 flex flex-col m-3 p-1 bg-white rounded-2xl shadow-lg space-y-3 overflow-hidden">
         <InputDirectory onDirectoryHandleChange={setDirectoryHandle} />
         <FilesController className="overflow-auto" directoryHandle={directoryHandle} onFileChange={handleFileChange} />
       </div>

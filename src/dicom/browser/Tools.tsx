@@ -2,6 +2,7 @@ import { Tooltip } from "@chakra-ui/react";
 import { RiCursorLine, RiDragMove2Fill, RiRestartLine, RiWindow2Line } from "react-icons/ri";
 import clsx from "clsx";
 import React from "react";
+import { IconType } from "react-icons";
 
 export enum Tool {
   Cursor = "CURSOR",
@@ -13,29 +14,29 @@ export enum Tool {
 interface ConfigRow {
   tool: Tool;
   label: string;
-  icon: React.ReactElement;
+  icon: IconType;
 }
 
 const config: ConfigRow[] = [
   {
     tool: Tool.Cursor,
     label: "Cursor",
-    icon: <RiCursorLine />,
+    icon: RiCursorLine,
   },
   {
     tool: Tool.Windowing,
     label: "Windowing",
-    icon: <RiWindow2Line />,
+    icon: RiDragMove2Fill,
   },
   {
     tool: Tool.Pan,
     label: "Move",
-    icon: <RiDragMove2Fill />,
+    icon: RiWindow2Line,
   },
   {
     tool: Tool.Rotate,
     label: "Rotate",
-    icon: <RiRestartLine />,
+    icon: RiRestartLine,
   },
 ];
 
@@ -46,16 +47,20 @@ interface Props {
   className?: string;
 }
 
-export const ToolsController = ({ tool, onToolChange, className }: Props): React.ReactElement => {
+export const ToolsController = ({ tool: selectedTool, onToolChange, className }: Props): React.ReactElement => {
   return (
     <div className={clsx("flex flex-row justify-center space-x-2 m-3 p-1 bg-white rounded-2xl shadow-lg", className)}>
-      {config.map(({ tool, label, icon }) => (
-        <ToolButton key={tool} onClick={() => onToolChange(tool)}>
-          <Tooltip hasArrow label={label}>
-            <span>{icon}</span>
-          </Tooltip>
-        </ToolButton>
-      ))}
+      {config.map(({ tool, label, icon }) => {
+        return (
+          <ToolButton key={tool} onClick={() => onToolChange(tool)}>
+            <Tooltip hasArrow label={label}>
+              <span>
+                {icon({ className: clsx("w-12 h-12", selectedTool === tool && "border-4 border-red-600 rounded-xl") })}
+              </span>
+            </Tooltip>
+          </ToolButton>
+        );
+      })}
     </div>
   );
 };

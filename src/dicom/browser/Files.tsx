@@ -20,7 +20,7 @@ export const FilesController = ({ directoryHandle, onFileChange, className }: Pr
   }, [directoryHandle]);
 
   if (directory == null) {
-    return <div>Nothing selected</div>;
+    return <></>;
   }
 
   const handleSelectRegularFile = async (regularFile: FsRegularFile): Promise<void> => {
