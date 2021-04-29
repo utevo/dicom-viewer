@@ -27,6 +27,7 @@ export const Browser = ({ className }: Props): React.ReactElement => {
   const [tool, setTool] = useState<Tool>(Tool.Cursor);
   const [buttonDown, setButtonDown] = useState<boolean>(false);
   const [prevMousePosition, setPrevMousePosition] = useState<Position>({ x: 0, y: 0 });
+  const [workspaceSize, setWorkspaceSize] = useState<Size>({ width: 0, height: 0 });
 
   const handleDicomObjectChange = (newDicomObject: DicomObject) => {
     const dicomImage = DicomImage.fromDicomObject(newDicomObject);
@@ -42,7 +43,7 @@ export const Browser = ({ className }: Props): React.ReactElement => {
     }
 
     setDicomImage(dicomImage.value);
-    setViewPort(ViewPort.default());
+    setViewPort(calcViewPortDefault(workspaceSize, { width: dicomImage.value.rows, height: dicomImage.value.columns }));
   };
 
   useEffect(() => {
@@ -148,7 +149,7 @@ export const Browser = ({ className }: Props): React.ReactElement => {
       <div className="flex-1 flex flex-col">
         <ToolsController tool={tool} onToolChange={setTool} />
         <div className="flex-1 m-3 p-1 bg-white rounded-2xl shadow-lg">
-          <AutoSizer>
+          <AutoSizer onResize={setWorkspaceSize}>
             {({ width, height }) => (
               <Workspace
                 width={width}
@@ -171,4 +172,15 @@ export const Browser = ({ className }: Props): React.ReactElement => {
       /> */}
     </div>
   );
+};
+
+interface Size {
+  width: number;
+  height: number;
+}
+const calcViewPortDefault = (workspaceSize: Size, imageSize: Size): ViewPort => {
+  return {
+    position: { x: workspaceSize.width / 2 - imageSize.width / 2, y: workspaceSize.height / 2 - imageSize.height / 2 },
+    rotation: 0,
+  };
 };
