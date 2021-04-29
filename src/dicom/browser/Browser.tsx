@@ -1,10 +1,10 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Tool, Tools as ToolsComponent } from "./Tools";
 import { Workspace } from "./Workspace";
 import { DicomImage, DicomImageTag } from "../domain/DicomImage";
 import { DicomObject } from "../domain/DicomObject";
 import Konva from "konva";
-import { Position, ViewPort, VoiLutModuleOffset } from "./types";
+import { Position, ViewPort, WindowingOffset } from "./types";
 import { InputDirectory } from "../InputDirectory";
 import { Files } from "./Files";
 import { ResultTag } from "../../common/adt";
@@ -18,7 +18,7 @@ export const Browser = (): React.ReactElement => {
   const [dicomImage, setDicomImage] = useState<DicomImage>();
   const [imageData, setImageData] = useState<ImageData>();
   const [viewPort, setViewPort] = useState<ViewPort>(ViewPort.default());
-  const [voiLutModuleOffset, setVoiLutModuleOffset] = useState<VoiLutModuleOffset>(VoiLutModuleOffset.default());
+  const [windowingOffset, setWindowingOffset] = useState<WindowingOffset>(WindowingOffset.default());
   const [tool, setTool] = useState<Tool>(Tool.Nothing);
   const [buttonDown, setButtonDown] = useState<boolean>(false);
   const [prevMousePosition, setPrevMousePosition] = useState<Position>({ x: 0, y: 0 });
@@ -30,7 +30,7 @@ export const Browser = (): React.ReactElement => {
       return;
     }
 
-    const imageData = ImageData_.fromDicomImage(dicomImage.value, voiLutModuleOffset);
+    const imageData = ImageData_.fromDicomImage(dicomImage.value, windowingOffset);
     if (imageData._tag === ResultTag.Err) {
       notify.error(imageData.value);
       return;
@@ -40,6 +40,20 @@ export const Browser = (): React.ReactElement => {
     setImageData(imageData.value);
     setViewPort(ViewPort.default());
   };
+
+  useEffect(() => {
+    if (dicomImage == null) {
+      return;
+    }
+    const imageData = ImageData_.fromDicomImage(dicomImage, windowingOffset);
+    if (imageData._tag === ResultTag.Err) {
+      notify.error(imageData.value);
+      return;
+    }
+
+    setImageData(imageData.value);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dicomImage, windowingOffset]);
 
   const handleMouseDown = (evt: Konva.KonvaEventObject<MouseEvent>): void => {
     setButtonDown(true);
@@ -53,8 +67,23 @@ export const Browser = (): React.ReactElement => {
     };
 
     switch (tool) {
+      case Tool.Windowing: {
+        if (buttonDown !== true) {
+          break;
+        }
+
+        const newWindowingOffset: WindowingOffset = {
+          windowCenterOffset: windowingOffset.windowCenterOffset + mousePositionDiff.x,
+          windowWidthOffset: windowingOffset.windowWidthOffset + -mousePositionDiff.y,
+        };
+        setWindowingOffset(newWindowingOffset);
+        break;
+      }
+
       case Tool.Pan: {
-        if (buttonDown !== true) break;
+        if (buttonDown !== true) {
+          break;
+        }
 
         const newViewPort = {
           ...viewPort,
@@ -122,7 +151,7 @@ export const Browser = (): React.ReactElement => {
       <Info
         viewPort={viewPort}
         voiLutModule={dicomImage?._tag === DicomImageTag.GrayScale ? dicomImage.voiLutModule : undefined}
-        voiLutModuleOffset={voiLutModuleOffset}
+        voiLutModuleOffset={windowingOffset}
       />
     </div>
   );

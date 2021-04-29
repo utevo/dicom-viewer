@@ -1,10 +1,10 @@
 import { VoiLutModule } from "../domain/DicomObject";
-import { Position, ViewPort, VoiLutModuleOffset } from "./types";
+import { Position, ViewPort, WindowingOffset } from "./types";
 
 interface Props {
   viewPort: ViewPort;
   voiLutModule?: VoiLutModule;
-  voiLutModuleOffset?: VoiLutModuleOffset;
+  voiLutModuleOffset?: WindowingOffset;
 }
 
 export const Info = ({ viewPort, voiLutModule, voiLutModuleOffset }: Props): React.ReactElement => {
@@ -12,7 +12,7 @@ export const Info = ({ viewPort, voiLutModule, voiLutModuleOffset }: Props): Rea
     <ul>
       <li>View Port: {JSON.stringify(viewPort)}</li>
       {voiLutModule && <li>VOI LUT Module: {JSON.stringify(voiLutModule)}</li>}
-      {voiLutModuleOffset && <li>VOI LUT Module Offset: {JSON.stringify(voiLutModuleOffset)}</li>}
+      {voiLutModuleOffset && <li>Windowing Offset: {JSON.stringify(voiLutModuleOffset)}</li>}
     </ul>
   );
 };

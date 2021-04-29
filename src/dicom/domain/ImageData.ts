@@ -1,10 +1,10 @@
 import { Result, ResultTag } from "../../common/adt";
-import { VoiLutModuleOffset } from "../browser/types";
+import { WindowingOffset } from "../browser/types";
 import { DicomImage, DicomImageGrayScale, DicomImageRgb, DicomImageTag } from "./DicomImage";
 import { PhotometricInterpratation, VoiLutFunction, VoiLutModule } from "./DicomObject";
 
 export const ImageData_ = {
-  fromDicomImage(dicomImage: DicomImage, voiLutModuleOffset: VoiLutModuleOffset): Result<ImageData, string> {
+  fromDicomImage(dicomImage: DicomImage, voiLutModuleOffset: WindowingOffset): Result<ImageData, string> {
     switch (dicomImage._tag) {
       case DicomImageTag.GrayScale:
         return ImageData_._fromDicomImageGrayScale(dicomImage, voiLutModuleOffset);
@@ -15,7 +15,7 @@ export const ImageData_ = {
 
   _fromDicomImageGrayScale(
     dicomImage: DicomImageGrayScale,
-    voiLutModuleOffset: VoiLutModuleOffset
+    voiLutModuleOffset: WindowingOffset
   ): Result<ImageData, string> {
     if (dicomImage.photometricInterpratation == PhotometricInterpratation.Monochrome1) {
       return Result.Err(`Not supported Photometric Interpratation (${dicomImage.photometricInterpratation})`);
@@ -50,15 +50,12 @@ export const ImageData_ = {
 
 type Lut = (pixelValue: number) => number;
 const Lut = {
-  fromVoiLutModuleAndConfig: (
-    voiLutModule: VoiLutModule,
-    voiLutModuleOffset: VoiLutModuleOffset
-  ): Result<Lut, string> => {
+  fromVoiLutModuleAndConfig: (voiLutModule: VoiLutModule, windowingOffset: WindowingOffset): Result<Lut, string> => {
     if (voiLutModule.voiLutFunction !== VoiLutFunction.Linear) {
       return Result.Err(`Not supported VOI LUT Functions (${voiLutModule.voiLutFunction})`);
     }
-    const windowCenter = voiLutModule.windowCenter + voiLutModuleOffset.windowCenterOffset;
-    const windowWidth = voiLutModule.windowWidth + voiLutModuleOffset.windowWidthOffset;
+    const windowCenter = voiLutModule.windowCenter + windowingOffset.windowCenterOffset;
+    const windowWidth = voiLutModule.windowWidth + windowingOffset.windowWidthOffset;
 
     const func = (pixelData: number): number => {
       if (pixelData < windowCenter - windowWidth / 2) {

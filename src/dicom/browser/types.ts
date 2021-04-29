@@ -16,12 +16,12 @@ export interface Position {
   y: number;
 }
 
-export interface VoiLutModuleOffset {
+export interface WindowingOffset {
   windowCenterOffset: number;
   windowWidthOffset: number;
 }
-export const VoiLutModuleOffset = {
-  default: (): VoiLutModuleOffset => {
+export const WindowingOffset = {
+  default: (): WindowingOffset => {
     return {
       windowCenterOffset: 0,
       windowWidthOffset: 0,
