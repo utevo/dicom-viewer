@@ -1,12 +1,14 @@
 import "tailwindcss/tailwind.css";
 import { AppProps } from "next/dist/next-server/lib/router/router";
-import { ThemeProvider, theme } from "@chakra-ui/react";
+import { ChakraProvider, CSSReset } from "@chakra-ui/react";
+import React from "react";
 
 function MyApp({ Component, pageProps }: AppProps): React.ReactElement {
   return (
-    <ThemeProvider theme={theme}>
+    <ChakraProvider>
+      <CSSReset />
       <Component {...pageProps} />
-    </ThemeProvider>
+    </ChakraProvider>
   );
 }
 

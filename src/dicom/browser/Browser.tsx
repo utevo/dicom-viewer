@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
-import { Tool, ToolsController as ToolsComponent } from "./Tools";
+import { Tool, ToolsController } from "./Tools";
 import { Workspace } from "./Workspace";
-import { DicomImage, DicomImageTag } from "../domain/DicomImage";
+import { DicomImage } from "../domain/DicomImage";
 import { DicomObject } from "../domain/DicomObject";
 import Konva from "konva";
 import { Position, ViewPort, WindowingOffset } from "./types";
@@ -10,16 +10,21 @@ import { FilesController } from "./Files";
 import { ResultTag } from "../../common/adt";
 import { ImageData_ } from "../domain/ImageData";
 import { useNotify } from "../../common/notify";
-import { InfoViewer } from "./Info";
+import clsx from "clsx";
+import AutoSizer from "react-virtualized-auto-sizer";
 
-export const Browser = (): React.ReactElement => {
+interface Props {
+  className?: string;
+}
+
+export const Browser = ({ className }: Props): React.ReactElement => {
   const notify = useNotify();
 
   const [dicomImage, setDicomImage] = useState<DicomImage>();
   const [imageData, setImageData] = useState<ImageData>();
   const [viewPort, setViewPort] = useState<ViewPort>(ViewPort.default());
   const [windowingOffset, setWindowingOffset] = useState<WindowingOffset>(WindowingOffset.default());
-  const [tool, setTool] = useState<Tool>(Tool.Nothing);
+  const [tool, setTool] = useState<Tool>(Tool.Cursor);
   const [buttonDown, setButtonDown] = useState<boolean>(false);
   const [prevMousePosition, setPrevMousePosition] = useState<Position>({ x: 0, y: 0 });
 
@@ -134,25 +139,35 @@ export const Browser = (): React.ReactElement => {
   };
 
   return (
-    <div>
-      <ToolsComponent tool={tool} onToolChange={setTool} />
-      <Workspace
-        width={800}
-        height={800}
-        imageData={imageData}
-        viewPort={viewPort}
-        onMouseDown={handleMouseDown}
-        onMouseMove={handleMouseMove}
-        onMouseUp={handleMouseUp}
-        onMouseLeave={handleMouseLeave}
-      />
-      <InputDirectory onDirectoryHandleChange={setDirectoryHandle} />
-      {directoryHandle != null && <FilesController directoryHandle={directoryHandle} onFileChange={handleFileChange} />}
-      <InfoViewer
+    <div className={clsx("w-full h-full flex", className)}>
+      <div className="w-80 flex flex-col items-center m-3 p-1 bg-white rounded-2xl shadow-lg space-y-3 overflow-hidden">
+        <InputDirectory onDirectoryHandleChange={setDirectoryHandle} />
+        <FilesController className="overflow-auto" directoryHandle={directoryHandle} onFileChange={handleFileChange} />
+      </div>
+      <div className="flex-1 flex flex-col">
+        <ToolsController tool={tool} onToolChange={setTool} />
+        <div className="flex-1 m-3 p-1 bg-white rounded-2xl shadow-lg">
+          <AutoSizer>
+            {({ width, height }) => (
+              <Workspace
+                width={width}
+                height={height}
+                imageData={imageData}
+                viewPort={viewPort}
+                onMouseDown={handleMouseDown}
+                onMouseMove={handleMouseMove}
+                onMouseUp={handleMouseUp}
+                onMouseLeave={handleMouseLeave}
+              />
+            )}
+          </AutoSizer>
+        </div>
+      </div>
+      {/* <InfoViewer
         viewPort={viewPort}
         voiLutModule={dicomImage?._tag === DicomImageTag.GrayScale ? dicomImage.voiLutModule : undefined}
         voiLutModuleOffset={windowingOffset}
-      />
+      /> */}
     </div>
   );
 };
