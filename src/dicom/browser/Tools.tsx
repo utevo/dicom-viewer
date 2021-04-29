@@ -53,9 +53,14 @@ export const ToolsController = ({ tool: selectedTool, onToolChange, className }:
       {config.map(({ tool, label, icon }) => {
         return (
           <ToolButton key={tool} onClick={() => onToolChange(tool)}>
-            <Tooltip hasArrow label={label}>
+            <Tooltip className="transition duration-150 ease-in-out hover:scale-125" hasArrow label={label}>
               <span>
-                {icon({ className: clsx("w-12 h-12", selectedTool === tool && "border-4 border-red-600 rounded-xl") })}
+                {icon({
+                  className: clsx(
+                    "w-12 h-12 transition duration-150 ease-in-out transform hover:scale-125",
+                    selectedTool === tool && "border-4 border-red-600 rounded-xl"
+                  ),
+                })}
               </span>
             </Tooltip>
           </ToolButton>
