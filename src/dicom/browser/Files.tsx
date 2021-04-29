@@ -88,15 +88,13 @@ const DirectoryComponent = ({
 }: DirectoryComponentProps): React.ReactElement => {
   return (
     <Accordion className={clsx(className)} allowMultiple>
-      <AccordionItem>
-        <h2>
-          <AccordionButton className={"font-semibold text-sm "}>
-            {directory.name}
-            <AccordionIcon />
-          </AccordionButton>
-        </h2>
-        <AccordionPanel>
-          {directory.files.map((file) =>
+      <AccordionItem border={0} className="border-0">
+        <AccordionButton className="font-semibold text-sm border-b">
+          <div className="flex-1 text-left">{directory.name}</div>
+          <AccordionIcon />
+        </AccordionButton>
+        <AccordionPanel py={0} className="flex flex-col py-0 divide-y">
+          {directory.files.map((file, idx) =>
             file._tag === "regularFile" ? (
               <RegularFileComponent
                 key={`${directory.name}/${file.name}`}
@@ -120,11 +118,20 @@ const DirectoryComponent = ({
 interface RegularFileComponentProps {
   regularFile: FsRegularFile;
   onSelectRegularFile: (regularFile: FsRegularFile) => void;
+
+  className?: string;
 }
 
-const RegularFileComponent = ({ regularFile, onSelectRegularFile }: RegularFileComponentProps): React.ReactElement => {
+const RegularFileComponent = ({
+  regularFile,
+  onSelectRegularFile,
+  className,
+}: RegularFileComponentProps): React.ReactElement => {
   return (
-    <button className={clsx("text-sm")} onClick={() => onSelectRegularFile(regularFile)}>
+    <button
+      className={clsx("text-sm text-left pl-4 truncate overflow-ellipsis", className)}
+      onClick={() => onSelectRegularFile(regularFile)}
+    >
       {regularFile.name}
     </button>
   );

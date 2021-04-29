@@ -16,7 +16,7 @@ export function InputDirectory({ onDirectoryHandleChange, className }: Props): R
 
   return (
     <button
-      className={clsx("font-bold text-lg py-2 px-2 rounded-full bg-blue-500 text-white align-middle", className)}
+      className={clsx("font-bold text-lg py-2 px-6 rounded-full bg-blue-500 text-white align-middle", className)}
       onClick={handleClick}
     >
       Select Directory

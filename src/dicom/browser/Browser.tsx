@@ -140,9 +140,11 @@ export const Browser = ({ className }: Props): React.ReactElement => {
 
   return (
     <div className={clsx("w-full h-full flex", className)}>
-      <div className="w-80 flex flex-col m-3 p-1 bg-white rounded-2xl shadow-lg space-y-3 overflow-hidden">
-        <InputDirectory onDirectoryHandleChange={setDirectoryHandle} />
-        <FilesController className="overflow-auto" directoryHandle={directoryHandle} onFileChange={handleFileChange} />
+      <div className="w-96 flex flex-col m-3 p-1 bg-white rounded-2xl shadow-lg space-y-3 overflow-hidden">
+        <InputDirectory className="self-center" onDirectoryHandleChange={setDirectoryHandle} />
+        <div className="flex-1 overflow-y-scroll border rounded-xl m-2">
+          <FilesController directoryHandle={directoryHandle} onFileChange={handleFileChange} />
+        </div>
       </div>
       <div className="flex-1 flex flex-col">
         <ToolsController tool={tool} onToolChange={setTool} />

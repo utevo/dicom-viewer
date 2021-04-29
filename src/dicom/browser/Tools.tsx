@@ -26,12 +26,12 @@ const config: ConfigRow[] = [
   {
     tool: Tool.Windowing,
     label: "Windowing",
-    icon: RiDragMove2Fill,
+    icon: RiWindow2Line,
   },
   {
     tool: Tool.Pan,
     label: "Move",
-    icon: RiWindow2Line,
+    icon: RiDragMove2Fill,
   },
   {
     tool: Tool.Rotate,
