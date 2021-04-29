@@ -25,7 +25,7 @@ export const Browser = ({ className }: Props): React.ReactElement => {
   const [viewPort, setViewPort] = useState<ViewPort>(ViewPort.default());
   const [windowingOffset, setWindowingOffset] = useState<WindowingOffset>(WindowingOffset.default());
   const [tool, setTool] = useState<Tool>(Tool.Cursor);
-  const [buttonDown, setButtonDown] = useState<boolean>(false);
+  const [mouseDown, setMouseDown] = useState<boolean>(false);
   const [prevMousePosition, setPrevMousePosition] = useState<Position>({ x: 0, y: 0 });
   const [workspaceSize, setWorkspaceSize] = useState<Size>({ width: 0, height: 0 });
 
@@ -61,7 +61,7 @@ export const Browser = ({ className }: Props): React.ReactElement => {
   }, [dicomImage, windowingOffset]);
 
   const handleMouseDown = (evt: Konva.KonvaEventObject<MouseEvent>): void => {
-    setButtonDown(true);
+    setMouseDown(true);
   };
 
   const handleMouseMove = (evt: Konva.KonvaEventObject<MouseEvent>): void => {
@@ -73,7 +73,7 @@ export const Browser = ({ className }: Props): React.ReactElement => {
 
     switch (tool) {
       case Tool.Windowing: {
-        if (buttonDown !== true) {
+        if (mouseDown !== true) {
           break;
         }
 
@@ -86,7 +86,7 @@ export const Browser = ({ className }: Props): React.ReactElement => {
       }
 
       case Tool.Pan: {
-        if (buttonDown !== true) {
+        if (mouseDown !== true) {
           break;
         }
 
@@ -102,7 +102,7 @@ export const Browser = ({ className }: Props): React.ReactElement => {
       }
 
       case Tool.Rotate: {
-        if (buttonDown !== true) break;
+        if (mouseDown !== true) break;
 
         const rotationDiff =
           (Math.abs(mousePositionDiff.x) > Math.abs(mousePositionDiff.y) ? mousePositionDiff.x : -mousePositionDiff.y) /
@@ -114,17 +114,21 @@ export const Browser = ({ className }: Props): React.ReactElement => {
         setViewPort(newViewPort);
         break;
       }
+
+      case Tool.Zoom: {
+        if (mouseDown !== true) break;
+      }
     }
 
     setPrevMousePosition(currMousePosition);
   };
 
   const handleMouseUp = (evt: Konva.KonvaEventObject<MouseEvent>): void => {
-    setButtonDown(false);
+    setMouseDown(false);
   };
 
   const handleMouseLeave = (evt: Konva.KonvaEventObject<MouseEvent>): void => {
-    setButtonDown(false);
+    setMouseDown(false);
   };
 
   const [directoryHandle, setDirectoryHandle] = useState<FileSystemDirectoryHandle>();
