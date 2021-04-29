@@ -117,6 +117,16 @@ export const Browser = ({ className }: Props): React.ReactElement => {
 
       case Tool.Zoom: {
         if (mouseDown !== true) break;
+
+        const zoomDiff = -(currMousePosition.y - prevMousePosition.y) / 50;
+        console;
+        const newViewPort: ViewPort = {
+          ...viewPort,
+          zoom: viewPort.zoom + zoomDiff,
+        };
+        console.log(newViewPort);
+        setViewPort(newViewPort);
+        break;
       }
     }
 
@@ -186,5 +196,6 @@ const calcViewPortDefault = (workspaceSize: Size, imageSize: Size): ViewPort => 
   return {
     position: { x: workspaceSize.width / 2 - imageSize.width / 2, y: workspaceSize.height / 2 - imageSize.height / 2 },
     rotation: 0,
+    zoom: 1,
   };
 };

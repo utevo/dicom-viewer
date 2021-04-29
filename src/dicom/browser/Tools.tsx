@@ -1,5 +1,5 @@
 import { Tooltip } from "@chakra-ui/react";
-import { RiCursorLine, RiDragMove2Fill, RiRestartLine, RiWindow2Line } from "react-icons/ri";
+import { RiCursorLine, RiDragMove2Fill, RiRestartLine, RiWindow2Line, RiZoomInLine } from "react-icons/ri";
 import clsx from "clsx";
 import React from "react";
 import { IconType } from "react-icons";
@@ -9,6 +9,7 @@ export enum Tool {
   Pan = "PAN",
   Rotate = "ROTATE",
   Windowing = "WINDOWING",
+  Zoom = "ZOOM",
 }
 
 interface ConfigRow {
@@ -37,6 +38,11 @@ const config: ConfigRow[] = [
     tool: Tool.Rotate,
     label: "Rotate",
     icon: RiRestartLine,
+  },
+  {
+    tool: Tool.Zoom,
+    label: "Zoom",
+    icon: RiZoomInLine,
   },
 ];
 

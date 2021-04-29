@@ -1,12 +1,14 @@
 export interface ViewPort {
   position: Position;
   rotation: number;
+  zoom: number;
 }
 export const ViewPort = {
   default: (): ViewPort => {
     return {
       position: { x: 0, y: 0 },
       rotation: 0,
+      zoom: 1,
     };
   },
 };

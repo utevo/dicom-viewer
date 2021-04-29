@@ -60,6 +60,7 @@ export const Workspace = ({
           y={viewPort.position.y + offset.y}
           rotation={viewPort.rotation}
           offset={offset}
+          scale={{ x: viewPort.zoom, y: viewPort.zoom }}
         >
           <KonvaImage image={imageBitmap} />
         </Group>
