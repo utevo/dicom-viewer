@@ -249,6 +249,5 @@ export const DicomImage = {
   },
 };
 
-type PixelData = PixelDataGrayScale | PixelDataRgb;
 type PixelDataGrayScale = Uint8Array | Int8Array | Uint16Array | Int16Array | Uint32Array | Int32Array;
 type PixelDataRgb = Uint32Array;

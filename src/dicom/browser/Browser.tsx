@@ -1,17 +1,17 @@
 import React, { useEffect, useState } from "react";
+import Konva from "konva";
+import clsx from "clsx";
+import AutoSizer from "react-virtualized-auto-sizer";
 import { Tool, ToolsController } from "./Tools";
 import { Workspace } from "./Workspace";
 import { DicomImage } from "../domain/DicomImage";
 import { DicomObject } from "../domain/DicomObject";
-import Konva from "konva";
 import { Position, ViewPort, WindowingOffset } from "./types";
 import { InputDirectory } from "../InputDirectory";
 import { FilesController } from "./Files";
 import { ResultTag } from "../../common/adt";
 import { ImageData_ } from "../domain/ImageData";
 import { useNotify } from "../../common/notify";
-import clsx from "clsx";
-import AutoSizer from "react-virtualized-auto-sizer";
 
 interface Props {
   className?: string;
@@ -42,7 +42,6 @@ export const Browser = ({ className }: Props): React.ReactElement => {
     }
 
     setDicomImage(dicomImage.value);
-    setImageData(imageData.value);
     setViewPort(ViewPort.default());
   };
 
@@ -130,12 +129,12 @@ export const Browser = ({ className }: Props): React.ReactElement => {
   const [directoryHandle, setDirectoryHandle] = useState<FileSystemDirectoryHandle>();
 
   const handleFileChange = async (file: File): Promise<void> => {
-    const result = await DicomObject.fromFile(file);
-    if (result._tag === ResultTag.Err) {
-      notify.error(result.value);
+    const dicomObject = await DicomObject.fromFile(file);
+    if (dicomObject._tag === ResultTag.Err) {
+      notify.error(dicomObject.value);
       return;
     }
-    handleDicomObjectChange(result.value);
+    handleDicomObjectChange(dicomObject.value);
   };
 
   return (

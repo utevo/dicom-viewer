@@ -30,7 +30,12 @@ export const DicomObject = {
   fromFile: async (file: File): Promise<Result<DicomObject, string>> => {
     const arrayBuffer = await file.arrayBuffer();
     const byteArray = new Uint8Array(arrayBuffer);
-    const dataSet = parseDicom(byteArray);
+    let dataSet;
+    try {
+      dataSet = parseDicom(byteArray);
+    } catch (e) {
+      return Result.Err(String(e));
+    }
 
     return DicomObject._fromDataSet(dataSet);
   },

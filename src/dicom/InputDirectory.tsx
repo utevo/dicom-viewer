@@ -11,7 +11,10 @@ export function InputDirectory({ onDirectoryHandleChange, className }: Props): R
     const showDirectoryPicker = window.showDirectoryPicker;
     console.assert(showDirectoryPicker != null, "Unable to use showDirectoryPicker");
 
-    onDirectoryHandleChange(await showDirectoryPicker());
+    try {
+      onDirectoryHandleChange(await showDirectoryPicker());
+      // eslint-disable-next-line no-empty
+    } catch (e) {}
   };
 
   return (
