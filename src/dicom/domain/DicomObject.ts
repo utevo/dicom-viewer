@@ -86,7 +86,7 @@ export const DicomObject = {
     if (highBit == null) return Result.Err("DicomImage need to have highBit");
 
     const pixelRepresentationValue = dataSet.uint16("x00280103");
-    if (pixelRepresentationValue == null) return Result.Err("DicomImage need to have pixelRepresentationValue");
+    if (pixelRepresentationValue == null) return Result.Err("DicomImage need to have Pixel Representation value");
 
     let pixelRepresentation: PixelRepresentation;
     switch (pixelRepresentationValue) {
@@ -97,7 +97,7 @@ export const DicomObject = {
         pixelRepresentation = PixelRepresentation.Signed;
         break;
       default:
-        return Result.Err("Unexpected value of pixelRepresentation");
+        return Result.Err("Unexpected value of Pixel Representation");
     }
 
     const pixelDataElement = dataSet.elements.x7fe00010;

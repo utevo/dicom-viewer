@@ -165,14 +165,8 @@ export const DicomImage = {
     if (photometricInterpratation === PhotometricInterpratation.Monochrome1) {
       return Result.Err("Not supported photometricInterpratation");
     }
-    if (pixelRepresentation === PixelRepresentation.Signed) {
-      return Result.Err("Not supported pixelRepresentation");
-    }
 
-    const { voiLutFunction, windowCenter, windowWidth } = voiLutModulePartial;
-    if (windowCenter == null || windowWidth == null) {
-      return Result.Err("DicomImage must contain windowCenter and windowWith");
-    }
+    const { voiLutFunction, windowCenter = WINDOW_CENTER_DEFAULT, windowWidth = WINDOW_WIDTH_DEFAULT } = voiLutModulePartial;
     if (voiLutFunction != null && voiLutFunction != VoiLutFunction.Linear) {
       return Result.Err("Not supported voiLutFunction");
     }
@@ -183,18 +177,38 @@ export const DicomImage = {
     };
 
     let imagePixelData;
-    switch (bitsAllocated) {
-      case 8:
-        imagePixelData = new Uint8Array(pixelData.buffer);
+    switch (pixelRepresentation) {
+      case PixelRepresentation.Unsigned:
+        switch (bitsAllocated) {
+          case 8:
+            imagePixelData = new Uint8Array(pixelData.buffer);
+            break;
+          case 16:
+            imagePixelData = new Uint16Array(pixelData.buffer);
+            break;
+          case 32:
+            imagePixelData = new Uint32Array(pixelData.buffer);
+            break;
+          default:
+            return Result.Err("Not supported Bits Allocated");
+        }
         break;
-      case 16:
-        imagePixelData = new Uint16Array(pixelData.buffer);
+
+      case PixelRepresentation.Signed:
+        switch (bitsAllocated) {
+          case 8:
+            imagePixelData = new Int8Array(pixelData.buffer);
+            break;
+          case 16:
+            imagePixelData = new Int16Array(pixelData.buffer);
+            break;
+          case 32:
+            imagePixelData = new Int32Array(pixelData.buffer);
+            break;
+          default:
+            return Result.Err("Not supported Bits Allocated");
+        }
         break;
-      case 32:
-        imagePixelData = new Uint32Array(pixelData.buffer);
-        break;
-      default:
-        return Result.Err("Not supported bitsAllocated");
     }
 
     return Result.Ok(
@@ -251,3 +265,6 @@ export const DicomImage = {
 
 type PixelDataGrayScale = Uint8Array | Int8Array | Uint16Array | Int16Array | Uint32Array | Int32Array;
 type PixelDataRgb = Uint32Array;
+
+const WINDOW_CENTER_DEFAULT = 1024;
+const WINDOW_WIDTH_DEFAULT = 4096;
