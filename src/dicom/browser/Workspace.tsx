@@ -45,7 +45,7 @@ export const Workspace = ({
 
   return imageData ? (
     <Stage
-      width={width - 10}
+      width={width}
       height={height}
       onMouseDown={onMouseDown}
       onMouseMove={onMouseMove}

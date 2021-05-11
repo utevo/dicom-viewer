@@ -4,7 +4,7 @@ import clsx from "clsx";
 import AutoSizer from "react-virtualized-auto-sizer";
 import { Tool, ToolsController } from "./Tools";
 import { Workspace } from "./Workspace";
-import { DicomImage } from "../domain/DicomImage";
+import { DicomImage, DicomImageTag } from "../domain/DicomImage";
 import { DicomObject } from "../domain/DicomObject";
 import { Position, ViewPort, WindowingOffset } from "./types";
 import { InputDirectory } from "./InputDirectory";
@@ -12,6 +12,7 @@ import { FilesController } from "./Files";
 import { ResultTag } from "../../common/adt";
 import { ImageData_ } from "../domain/ImageData";
 import { useNotify } from "../../common/notify";
+import { InfoViewer } from "./Info";
 
 interface Props {
   className?: string;
@@ -104,9 +105,7 @@ export const Browser = ({ className }: Props): React.ReactElement => {
       case Tool.Rotate: {
         if (mouseDown !== true) break;
 
-        const rotationDiff =
-          (Math.abs(mousePositionDiff.x) > Math.abs(mousePositionDiff.y) ? mousePositionDiff.x : -mousePositionDiff.y) /
-          4;
+        const rotationDiff = -mousePositionDiff.y / 4;
         const newViewPort: ViewPort = {
           ...viewPort,
           rotation: viewPort.rotation + rotationDiff,
@@ -118,11 +117,11 @@ export const Browser = ({ className }: Props): React.ReactElement => {
       case Tool.Zoom: {
         if (mouseDown !== true) break;
 
-        const zoomDiff = -(currMousePosition.y - prevMousePosition.y) / 50;
+        const zoomDiff = -(currMousePosition.y - prevMousePosition.y) / 600;
         console;
         const newViewPort: ViewPort = {
           ...viewPort,
-          zoom: viewPort.zoom + zoomDiff,
+          zoom: viewPort.zoom * (1 + zoomDiff) ,
         };
         console.log(newViewPort);
         setViewPort(newViewPort);
@@ -162,7 +161,7 @@ export const Browser = ({ className }: Props): React.ReactElement => {
       </div>
       <div className="flex-1 flex flex-col">
         <ToolsController tool={tool} onToolChange={setTool} />
-        <div className="flex-1 m-3 p-1 bg-white rounded-2xl shadow-lg">
+        <div className="flex-1 m-3 bg-white rounded-2xl shadow-lg">
           <AutoSizer onResize={setWorkspaceSize}>
             {({ width, height }) => (
               <Workspace
@@ -179,11 +178,12 @@ export const Browser = ({ className }: Props): React.ReactElement => {
           </AutoSizer>
         </div>
       </div>
-      {/* <InfoViewer
+      <InfoViewer
+        className="fixed bottom-5 right-5"
         viewPort={viewPort}
         voiLutModule={dicomImage?._tag === DicomImageTag.GrayScale ? dicomImage.voiLutModule : undefined}
         voiLutModuleOffset={windowingOffset}
-      /> */}
+      />
     </div>
   );
 };
