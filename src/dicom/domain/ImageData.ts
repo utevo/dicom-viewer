@@ -1,7 +1,7 @@
 import { Result, ResultTag } from "../../common/adt";
 import { WindowingOffset } from "../browser/types";
-import { DicomImage, DicomImageGrayScale, DicomImageRgb, DicomImageTag } from "./DicomImage";
-import { PhotometricInterpratation, VoiLutFunction, VoiLutModule } from "./DicomObject";
+import { DicomImage, DicomImageGrayScale, DicomImageRgb, DicomImageTag, VoiLutModule } from "./DicomImage";
+import { PhotometricInterpratation, VoiLutFunction } from "./DicomObject";
 
 export const ImageData_ = {
   fromDicomImage(dicomImage: DicomImage, voiLutModuleOffset: WindowingOffset): Result<ImageData, string> {
@@ -29,7 +29,7 @@ export const ImageData_ = {
 
     const imageData = new ImageData(dicomImage.columns, dicomImage.rows);
     for (let idx = 0; idx < dicomImage.pixelData.length; idx += 1) {
-      const value = lut(dicomImage.pixelData[idx]);
+      const value = lut(dicomImage.pixelData[idx] * dicomImage.rescale.slope + dicomImage.rescale.intercept);
       imageData.data[4 * idx] = value;
       imageData.data[4 * idx + 1] = value;
       imageData.data[4 * idx + 2] = value;
@@ -55,8 +55,8 @@ const Lut = {
     if (voiLutModule.voiLutFunction !== VoiLutFunction.Linear) {
       return Result.Err(`Not supported VOI LUT Functions (${voiLutModule.voiLutFunction})`);
     }
-    const windowCenter = voiLutModule.windowCenter + windowingOffset.windowCenterOffset;
-    const windowWidth = voiLutModule.windowWidth + windowingOffset.windowWidthOffset;
+    const windowCenter = voiLutModule.window.center + windowingOffset.windowCenterOffset;
+    const windowWidth = voiLutModule.window.width + windowingOffset.windowWidthOffset;
 
     const func = (pixelData: number): number => {
       if (pixelData < windowCenter - windowWidth / 2) {

@@ -45,6 +45,7 @@ export const Browser = ({ className }: Props): React.ReactElement => {
 
     setDicomImage(dicomImage.value);
     setViewPort(calcViewPortDefault(workspaceSize, { width: dicomImage.value.rows, height: dicomImage.value.columns }));
+    setWindowingOffset(WindowingOffset.default());
   };
 
   useEffect(() => {
@@ -121,7 +122,7 @@ export const Browser = ({ className }: Props): React.ReactElement => {
         console;
         const newViewPort: ViewPort = {
           ...viewPort,
-          zoom: viewPort.zoom * (1 + zoomDiff) ,
+          zoom: viewPort.zoom * (1 + zoomDiff),
         };
         console.log(newViewPort);
         setViewPort(newViewPort);

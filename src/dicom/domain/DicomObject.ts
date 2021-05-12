@@ -23,7 +23,12 @@ export interface DicomObject {
   pixelData: Uint8Array;
   pixelDataVr: "OB" | "OW";
 
-  voiLutModule: Partial<VoiLutModule>;
+  windowCenter?: number;
+  windowWidth?: number;
+  voiLutFunction?: VoiLutFunction;
+
+  rescaleIntercept?: number;
+  rescaleSlope?: number;
 }
 
 export const DicomObject = {
@@ -122,12 +127,11 @@ export const DicomObject = {
     const windowCenter = dataSet.floatString("x00281050") as number | undefined;
     const windowWidth = dataSet.floatString("x00281051") as number | undefined;
 
+    const rescaleIntercept = dataSet.floatString("x00281052") as number | undefined;
+    const rescaleSlope = dataSet.floatString("x00281053") as number | undefined;
+
     const voiLutFunction =
-      dataSet.string("x00281056") != null
-        ? (dataSet.string("x00281056") as VoiLutFunction)
-        : windowCenter != null
-        ? VoiLutFunction.Linear
-        : undefined;
+      dataSet.string("x00281056") != null ? (dataSet.string("x00281056") as VoiLutFunction) : undefined; // ToDo: Need validation
 
     const voiLutSequenceElement = dataSet.elements.x00283010;
 
@@ -153,11 +157,11 @@ export const DicomObject = {
 
       pixelRepresentation,
 
-      voiLutModule: {
-        windowCenter,
-        windowWidth,
-        voiLutFunction,
-      },
+      windowCenter,
+      windowWidth,
+      rescaleIntercept,
+      rescaleSlope,
+      voiLutFunction,
 
       pixelData,
       pixelDataVr,
@@ -259,14 +263,10 @@ export enum PlanarConfiguration {
   Separated = 1,
 }
 
-export interface VoiLutModule {
-  windowCenter: number;
-  windowWidth: number;
-  voiLutFunction: string;
-}
-
 export enum VoiLutFunction {
   Linear = "LINEAR",
   LinearExact = "LINEAR_EXACT",
   Sigmoid = "SIGMOID",
 }
+
+export const VOI_LUT_FUNCTION_DEFAULT = VoiLutFunction.Linear;

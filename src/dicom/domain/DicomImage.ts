@@ -6,7 +6,7 @@ import {
   PixelRepresentation,
   PlanarConfiguration,
   VoiLutFunction,
-  VoiLutModule,
+  VOI_LUT_FUNCTION_DEFAULT,
 } from "./DicomObject";
 
 export type DicomImage = DicomImageGrayScale | DicomImageRgb;
@@ -18,12 +18,13 @@ export enum DicomImageTag {
 export interface DicomImageGrayScale {
   _tag: DicomImageTag.GrayScale;
 
+  photometricInterpratation: PhotometricInterpratation.Monochrome1 | PhotometricInterpratation.Monochrome2;
+  voiLutModule: VoiLutModule;
+  rescale: Rescale;
+
   rows: number;
   columns: number;
   pixelData: PixelDataGrayScale;
-
-  photometricInterpratation: PhotometricInterpratation.Monochrome1 | PhotometricInterpratation.Monochrome2;
-  voiLutModule: VoiLutModule;
 }
 export interface DicomImageRgb {
   _tag: DicomImageTag.Rgb;
@@ -36,22 +37,17 @@ export interface DicomImageRgb {
 const DicomImageGrayScale = (props: Omit<DicomImageGrayScale, "_tag">): DicomImageGrayScale => {
   return {
     _tag: DicomImageTag.GrayScale,
-
     ...props,
   };
 };
 const DicomImageRgb = (props: Omit<DicomImageRgb, "_tag">): DicomImageRgb => {
   return {
     _tag: DicomImageTag.Rgb,
-
     ...props,
   };
 };
 
 interface DataFofDicomImageGrayScale {
-  rows: number;
-  columns: number;
-
   photometricInterpratation: PhotometricInterpratation.Monochrome1 | PhotometricInterpratation.Monochrome2;
   pixelRepresentation: PixelRepresentation;
 
@@ -59,22 +55,31 @@ interface DataFofDicomImageGrayScale {
   bitsStored: number;
   highBit: number;
 
-  pixelData: Uint8Array;
-  pixelDataVr: "OB" | "OW";
-  voiLutModule: Partial<VoiLutModule>;
-}
+  windowCenter?: number;
+  windowWidth?: number;
+  voiLutFunction?: VoiLutFunction;
 
-interface DataForDicomImageRgb {
+  rescaleIntercept?: number;
+  rescaleSlope?: number;
+
   rows: number;
   columns: number;
 
-  planarConfiguration: PlanarConfiguration;
+  pixelData: Uint8Array;
+  pixelDataVr: "OB" | "OW";
+}
+
+interface DataForDicomImageRgb {
+  planarConfiguration?: PlanarConfiguration;
 
   bitsAllocated: number;
   bitsStored: number;
   highBit: number;
 
   pixelRepresentation: PixelRepresentation;
+
+  rows: number;
+  columns: number;
 
   pixelData: Uint8Array;
   pixelDataVr: "OB" | "OW";
@@ -94,56 +99,83 @@ export const DicomImage = {
         const {
           rows,
           columns,
+
           photometricInterpratation,
           pixelRepresentation,
+
           bitsAllocated,
           bitsStored,
           highBit,
+
+          windowCenter,
+          windowWidth,
+          voiLutFunction,
+
+          rescaleIntercept,
+          rescaleSlope,
+
           pixelData,
           pixelDataVr,
-          voiLutModule,
         } = dicomObject;
         return DicomImage._fromDataForDicomImageGrayScale({
           rows,
           columns,
+
           photometricInterpratation,
           pixelRepresentation,
+
           bitsAllocated,
           bitsStored,
           highBit,
+
+          windowCenter,
+          windowWidth,
+          voiLutFunction,
+
+          rescaleIntercept,
+          rescaleSlope,
+
           pixelData,
           pixelDataVr,
-          voiLutModule,
         });
       }
     }
     if (dicomObject.samplePerPixel === 3 && dicomObject.photometricInterpratation === PhotometricInterpratation.Rgb) {
       const {
-        rows,
-        columns,
         planarConfiguration,
+
         bitsAllocated,
         bitsStored,
         highBit,
+
         pixelRepresentation,
+
+        rows,
+        columns,
+
         pixelData,
         pixelDataVr,
       } = dicomObject;
       return DicomImage._fromDataForDicomImageRgb({
-        rows,
-        columns,
-        planarConfiguration: planarConfiguration ?? PlanarConfiguration.Interlaced,
+        planarConfiguration,
+
         bitsAllocated,
         bitsStored,
         highBit,
+
         pixelRepresentation,
+
+        rows,
+        columns,
+
         pixelData,
         pixelDataVr,
       });
     }
 
-    return Result.Err("Couldn't convert to Image");
+    return Result.Err("Couldn't convert to Dicom Image (not gray scale or rgb");
   },
+
   _fromDataForDicomImageGrayScale: ({
     rows,
     columns,
@@ -154,7 +186,11 @@ export const DicomImage = {
     highBit,
     pixelData,
     pixelDataVr,
-    voiLutModule: voiLutModulePartial,
+    windowCenter,
+    windowWidth,
+    voiLutFunction,
+    rescaleIntercept,
+    rescaleSlope,
   }: DataFofDicomImageGrayScale): Result<DicomImageGrayScale, string> => {
     if (pixelDataVr === "OW" && bitsAllocated !== 16) {
       return Result.Err("Not supported pixelData VR");
@@ -166,14 +202,20 @@ export const DicomImage = {
       return Result.Err("Not supported photometricInterpratation");
     }
 
-    const { voiLutFunction, windowCenter = WINDOW_CENTER_DEFAULT, windowWidth = WINDOW_WIDTH_DEFAULT } = voiLutModulePartial;
-    if (voiLutFunction != null && voiLutFunction != VoiLutFunction.Linear) {
+    const voiLutModule: VoiLutModule = {
+      voiLutFunction: voiLutFunction ?? VOI_LUT_FUNCTION_DEFAULT,
+      window: {
+        center: windowCenter ?? Window.default().center,
+        width: windowWidth ?? Window.default().width,
+      },
+    };
+    if (voiLutModule.voiLutFunction !== VoiLutFunction.Linear) {
       return Result.Err("Not supported voiLutFunction");
     }
-    const voiLutModule = {
-      windowCenter,
-      windowWidth,
-      voiLutFunction: VoiLutFunction.Linear,
+
+    const rescale: Rescale = {
+      slope: rescaleSlope ?? Rescale.default().slope,
+      intercept: rescaleIntercept ?? Rescale.default().intercept,
     };
 
     let imagePixelData;
@@ -213,15 +255,18 @@ export const DicomImage = {
 
     return Result.Ok(
       DicomImage.GrayScale({
+        photometricInterpratation,
+
+        voiLutModule,
+        rescale,
+
         rows,
         columns,
         pixelData: imagePixelData,
-
-        photometricInterpratation,
-        voiLutModule,
       })
     );
   },
+
   _fromDataForDicomImageRgb: ({
     rows,
     columns,
@@ -231,7 +276,7 @@ export const DicomImage = {
     highBit,
     pixelRepresentation,
     pixelData,
-    pixelDataVr,
+    pixelDataVr, // ToDo: Maybe I should do something with it?
   }: DataForDicomImageRgb): Result<DicomImageRgb, string> => {
     if (bitsAllocated !== 8 || bitsStored !== 8 || highBit !== 7) {
       return Result.Err("Not supported combination of bitsAllocated, bitsStored, highBit");
@@ -266,5 +311,29 @@ export const DicomImage = {
 type PixelDataGrayScale = Uint8Array | Int8Array | Uint16Array | Int16Array | Uint32Array | Int32Array;
 type PixelDataRgb = Uint32Array;
 
-const WINDOW_CENTER_DEFAULT = 1024;
-const WINDOW_WIDTH_DEFAULT = 4096;
+interface Rescale {
+  readonly slope: number;
+  readonly intercept: number;
+}
+const Rescale = {
+  default: (): Rescale => ({
+    slope: 1,
+    intercept: 0,
+  }),
+};
+
+interface Window {
+  readonly center: number;
+  readonly width: number;
+}
+const Window = {
+  default: (): Window => ({
+    center: 1024,
+    width: 4096,
+  }),
+};
+
+export interface VoiLutModule {
+  window: Window;
+  voiLutFunction: VoiLutFunction;
+}
