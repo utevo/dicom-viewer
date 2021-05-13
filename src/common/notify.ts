@@ -1,8 +1,8 @@
 import { useToast } from "@chakra-ui/react";
 
-interface Notify {
+type Notify = {
   error: (message: string) => void;
-}
+};
 
 export const useNotify = (): Notify => {
   const toast = useToast();

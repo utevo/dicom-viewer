@@ -14,9 +14,9 @@ import { useNotify } from "../../common/notify";
 import { InfoViewer } from "./Info";
 import { match } from "ts-pattern";
 
-interface Props {
+type Props = {
   className?: string;
-}
+};
 
 export const Browser = ({ className }: Props): React.ReactElement => {
   const notify = useNotify();
@@ -32,13 +32,13 @@ export const Browser = ({ className }: Props): React.ReactElement => {
 
   const handleDicomObjectChange = (newDicomObject: DicomObject) => {
     const dicomImage = DicomImage.fromDicomObject(newDicomObject);
-    if (dicomImage._tag === "Err") {
+    if (dicomImage._tag === "err") {
       notify.error(dicomImage.error);
       return;
     }
 
     const imageData = ImageData_.fromDicomImage(dicomImage.value, windowingOffset);
-    if (imageData._tag === "Err") {
+    if (imageData._tag === "err") {
       notify.error(imageData.error);
       return;
     }
@@ -53,7 +53,7 @@ export const Browser = ({ className }: Props): React.ReactElement => {
       return;
     }
     const imageData = ImageData_.fromDicomImage(dicomImage, windowingOffset);
-    if (imageData._tag === "Err") {
+    if (imageData._tag === "err") {
       notify.error(imageData.error);
       return;
     }
@@ -153,7 +153,7 @@ export const Browser = ({ className }: Props): React.ReactElement => {
 
   const handleFileChange = async (file: File): Promise<void> => {
     const dicomObject = await DicomObject.fromFile(file);
-    if (dicomObject._tag === "Err") {
+    if (dicomObject._tag === "err") {
       notify.error(dicomObject.error);
       return;
     }
@@ -197,10 +197,10 @@ export const Browser = ({ className }: Props): React.ReactElement => {
   );
 };
 
-interface Size {
+type Size = {
   width: number;
   height: number;
-}
+};
 
 const calcViewPortDefault = (workspaceSize: Size, imageSize: Size): ViewPort => {
   return {

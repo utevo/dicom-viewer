@@ -12,11 +12,11 @@ export enum Tool {
   Zoom = "ZOOM",
 }
 
-interface ConfigRow {
+type ConfigRow = {
   tool: Tool;
   label: string;
   icon: IconType;
-}
+};
 
 const config: ConfigRow[] = [
   {
@@ -46,12 +46,12 @@ const config: ConfigRow[] = [
   },
 ];
 
-interface Props {
+type Props = {
   tool: Tool;
   onToolChange: (newTool: Tool) => void;
 
   className?: string;
-}
+};
 
 export const ToolsController = ({ tool: selectedTool, onToolChange, className }: Props): React.ReactElement => {
   return (
@@ -76,10 +76,10 @@ export const ToolsController = ({ tool: selectedTool, onToolChange, className }:
   );
 };
 
-interface ToolButtonProps {
+type ToolButtonProps = {
   onClick: () => void;
   children: React.ReactNode;
-}
+};
 const ToolButton = ({ onClick, children }: ToolButtonProps): React.ReactElement => {
   return <button onClick={onClick}>{children}</button>;
 };

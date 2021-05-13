@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import { Group, Image as KonvaImage, Layer, Rect, Stage } from "react-konva";
 import { ViewPort } from "./types";
 
-interface Props {
+type Props = {
   width: number;
   height: number;
 
@@ -15,7 +15,7 @@ interface Props {
   onMouseMove: (evt: Konva.KonvaEventObject<MouseEvent>) => void;
   onMouseUp: (evt: Konva.KonvaEventObject<MouseEvent>) => void;
   onMouseLeave: (evt: Konva.KonvaEventObject<MouseEvent>) => void;
-}
+};
 
 export const Workspace = ({
   imageData,

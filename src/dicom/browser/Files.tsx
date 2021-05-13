@@ -1,12 +1,13 @@
 import { Accordion, AccordionButton, AccordionIcon, AccordionItem, AccordionPanel } from "@chakra-ui/react";
 import clsx from "clsx";
 import React, { useEffect, useState } from "react";
-interface Props {
+
+type Props = {
   directoryHandle?: FileSystemDirectoryHandle;
   onFileChange: (file: File) => void;
 
   className?: string;
-}
+};
 
 export const FilesController = ({ directoryHandle, onFileChange, className }: Props): React.ReactElement => {
   const [directory, setDirectory] = useState<FsDirectory>();
@@ -42,23 +43,24 @@ export const FilesController = ({ directoryHandle, onFileChange, className }: Pr
 };
 
 type FsFile = FsRegularFile | FsDirectory;
-interface FsRegularFile {
+
+type FsRegularFile = {
   _tag: "regularFile";
 
   name: string;
   handle: FileSystemFileHandle;
-}
+};
 
-interface FsDirectory {
+type FsDirectory = {
   _tag: "directory";
 
   name: string;
   files: FsFile[];
-}
+};
 
-interface HaveKindProp {
+type HaveKindProp = {
   kind: "file" | "directory";
-}
+};
 
 const directoryFromDirectoryHandle = async (directoryHandle: FileSystemDirectoryHandle): Promise<FsDirectory> => {
   const files: FsFile[] = [];
@@ -74,12 +76,12 @@ const directoryFromDirectoryHandle = async (directoryHandle: FileSystemDirectory
   return { _tag: "directory", name: directoryHandle.name, files };
 };
 
-interface DirectoryComponentProps {
+type DirectoryComponentProps = {
   directory: FsDirectory;
   onSelectRegularFile: (regularFile: FsRegularFile) => void;
 
   className?: string;
-}
+};
 
 const DirectoryComponent = ({
   directory,
@@ -115,12 +117,12 @@ const DirectoryComponent = ({
   );
 };
 
-interface RegularFileComponentProps {
+type RegularFileComponentProps = {
   regularFile: FsRegularFile;
   onSelectRegularFile: (regularFile: FsRegularFile) => void;
 
   className?: string;
-}
+};
 
 const RegularFileComponent = ({
   regularFile,

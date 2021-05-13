@@ -1,8 +1,8 @@
-export interface ViewPort {
+export type ViewPort = {
   position: Position;
   rotation: number;
   zoom: number;
-}
+};
 export const ViewPort = {
   default: (): ViewPort => {
     return {
@@ -13,15 +13,15 @@ export const ViewPort = {
   },
 };
 
-export interface Position {
+export type Position = {
   x: number;
   y: number;
-}
+};
 
-export interface WindowingOffset {
+export type WindowingOffset = {
   windowCenterOffset: number;
   windowWidthOffset: number;
-}
+};
 export const WindowingOffset = {
   default: (): WindowingOffset => {
     return {

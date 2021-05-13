@@ -1,10 +1,10 @@
 import clsx from "clsx";
 
-interface Props {
+type Props = {
   onDirectoryHandleChange: (newDirectoryHandle: FileSystemDirectoryHandle) => void;
 
   className?: string;
-}
+};
 
 export function InputDirectory({ onDirectoryHandleChange, className }: Props): React.ReactElement {
   const handleClick = async (evt: React.MouseEvent<HTMLButtonElement>) => {

@@ -1,9 +1,8 @@
 import { DataSet, parseDicom } from "dicom-parser";
 import { match, __ } from "ts-pattern";
-import { Result } from "../../common/adt";
+import { Result, ok, err } from "../../common/adt";
 
-const { Ok, Err } = Result;
-export interface DicomObject {
+export type DicomObject = {
   compression: Compression;
   endianness: Endianness;
 
@@ -30,7 +29,7 @@ export interface DicomObject {
 
   rescaleIntercept?: number;
   rescaleSlope?: number;
-}
+};
 
 export const DicomObject = {
   fromFile: async (file: File): Promise<Result<DicomObject, string>> => {
@@ -40,7 +39,7 @@ export const DicomObject = {
     try {
       dataSet = parseDicom(byteArray);
     } catch (e) {
-      return Err(String(e));
+      return err(String(e));
     }
 
     return DicomObject._fromDataSet(dataSet);
@@ -48,24 +47,24 @@ export const DicomObject = {
   _fromDataSet: (dataSet: DataSet): Result<DicomObject, string> => {
     const transferSyntax = TransferSyntax_.fromTransferSyntaxUID(dataSet.string("x00020012"));
     if (transferSyntax == null) {
-      return Err("DicomImage need to have Transfer Syntax");
+      return err("DicomImage need to have Transfer Syntax");
     }
 
     const [compression, endianness] = TransferSyntax_.toCompressionAndEndianness(transferSyntax);
 
     const rows = dataSet.uint16("x00280010");
-    if (rows == null) return Err("DicomImage need to have rows");
+    if (rows == null) return err("DicomImage need to have rows");
 
     const columns = dataSet.uint16("x00280011");
     if (columns == null) {
-      return Err("DicomImage need to have columns");
+      return err("DicomImage need to have columns");
     }
     const samplePerPixel = dataSet.uint16("x00280002");
-    if (samplePerPixel == null) return Err("DicomImage need to have samplePerPixel");
+    if (samplePerPixel == null) return err("DicomImage need to have samplePerPixel");
 
     const photometricInterpratationValue = dataSet.string("x00280004");
     if (photometricInterpratationValue == null) {
-      return Err("DicomImage need to have photometricInterpratation");
+      return err("DicomImage need to have photometricInterpratation");
     }
 
     const photometricInterpratation = photometricInterpratationValue as PhotometricInterpratation; // ToDo: Need validation
@@ -74,33 +73,33 @@ export const DicomObject = {
     const maybePlanarConfiguration = match<PlanarConfiguration, Result<PlanarConfiguration, string>>(
       planarConfigurationValue
     )
-      .with(0, () => Ok(PlanarConfiguration.Interlaced))
-      .with(1, () => Ok(PlanarConfiguration.Separated))
-      .with(__, () => Err("Dicom Image have incorrect Planar Configuration"))
+      .with(0, () => ok(PlanarConfiguration.Interlaced))
+      .with(1, () => ok(PlanarConfiguration.Separated))
+      .with(__, () => err("Dicom Image have incorrect Planar Configuration"))
       .exhaustive();
-    if (maybePlanarConfiguration._tag === "Err") {
+    if (maybePlanarConfiguration._tag === "err") {
       return maybePlanarConfiguration;
     }
     const planarConfiguration = maybePlanarConfiguration.value;
 
     const bitsAllocated = dataSet.uint16("x00280100");
-    if (bitsAllocated == null) return Err("Dicom Image need to have Bits Allocated");
+    if (bitsAllocated == null) return err("Dicom Image need to have Bits Allocated");
 
     const bitsStored = dataSet.uint16("x00280101");
-    if (bitsStored == null) return Err("Dicom Image need to have Bits Stored");
+    if (bitsStored == null) return err("Dicom Image need to have Bits Stored");
 
     const highBit = dataSet.uint16("x00280102");
-    if (highBit == null) return Err("Dicom Image need to have High Bit");
+    if (highBit == null) return err("Dicom Image need to have High Bit");
 
     const pixelRepresentationValue = dataSet.uint16("x00280103");
-    if (pixelRepresentationValue == null) return Err("DicomImage need to have Pixel Representation value");
+    if (pixelRepresentationValue == null) return err("DicomImage need to have Pixel Representation value");
 
     const maybePixelRepresentation = match<number, Result<PixelRepresentation, string>>(pixelRepresentationValue)
-      .with(0, () => Ok(PixelRepresentation.Unsigned))
-      .with(1, () => Ok(PixelRepresentation.Signed))
-      .with(__, () => Err("Unexpected value of Pixel Representation"))
+      .with(0, () => ok(PixelRepresentation.Unsigned))
+      .with(1, () => ok(PixelRepresentation.Signed))
+      .with(__, () => err("Unexpected value of Pixel Representation"))
       .exhaustive();
-    if (maybePixelRepresentation._tag === "Err") {
+    if (maybePixelRepresentation._tag === "err") {
       return maybePixelRepresentation;
     }
     const pixelRepresentation = maybePixelRepresentation.value;
@@ -109,11 +108,11 @@ export const DicomObject = {
     const pixelDataVrValue = pixelDataElement.vr ?? "OB";
 
     const maybePixelDataVr = match<string, Result<"OB" | "OW", string>>(pixelDataVrValue)
-      .with("OB", () => Ok("OB"))
-      .with("OW", () => Ok("OW"))
-      .with(__, () => Err("Unexpected Pixel Data VR"))
+      .with("OB", () => ok("OB"))
+      .with("OW", () => ok("OW"))
+      .with(__, () => err("Unexpected Pixel Data VR"))
       .exhaustive();
-    if (maybePixelDataVr._tag === "Err") {
+    if (maybePixelDataVr._tag === "err") {
       return maybePixelDataVr;
     }
     const pixelDataVr = maybePixelDataVr.value;
@@ -135,10 +134,10 @@ export const DicomObject = {
     const voiLutSequenceElement = dataSet.elements.x00283010;
 
     if (voiLutSequenceElement != null) {
-      return Err("Not supported voiLutSequence");
+      return err("Not supported voiLutSequence");
     }
 
-    return Ok({
+    return ok({
       compression,
       endianness,
 

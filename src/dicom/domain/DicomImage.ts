@@ -1,5 +1,5 @@
 import { match, __ } from "ts-pattern";
-import { Result } from "../../common/adt";
+import { Result, ok, err } from "../../common/adt";
 import {
   Compression,
   DicomObject,
@@ -10,11 +10,9 @@ import {
   VOI_LUT_FUNCTION_DEFAULT,
 } from "./DicomObject";
 
-const { Ok, Err } = Result;
-
 export type DicomImage = DicomImageGrayScale | DicomImageRgb;
 
-export interface DicomImageGrayScale {
+export type DicomImageGrayScale = {
   _tag: "GrayScale";
 
   photometricInterpratation: PhotometricInterpratation.Monochrome1 | PhotometricInterpratation.Monochrome2;
@@ -24,14 +22,14 @@ export interface DicomImageGrayScale {
   rows: number;
   columns: number;
   pixelData: PixelDataGrayScale;
-}
-export interface DicomImageRgb {
+};
+export type DicomImageRgb = {
   _tag: "Rgb";
 
   rows: number;
   columns: number;
   pixelData: PixelDataRgb;
-}
+};
 
 const DicomImageGrayScale = (props: Omit<DicomImageGrayScale, "_tag">): DicomImageGrayScale => {
   return {
@@ -46,7 +44,7 @@ const DicomImageRgb = (props: Omit<DicomImageRgb, "_tag">): DicomImageRgb => {
   };
 };
 
-interface DataFofDicomImageGrayScale {
+type DataFofDicomImageGrayScale = {
   photometricInterpratation: PhotometricInterpratation.Monochrome1 | PhotometricInterpratation.Monochrome2;
   pixelRepresentation: PixelRepresentation;
 
@@ -66,9 +64,9 @@ interface DataFofDicomImageGrayScale {
 
   pixelData: Uint8Array;
   pixelDataVr: "OB" | "OW";
-}
+};
 
-interface DataForDicomImageRgb {
+type DataForDicomImageRgb = {
   planarConfiguration?: PlanarConfiguration;
 
   bitsAllocated: number;
@@ -82,7 +80,7 @@ interface DataForDicomImageRgb {
 
   pixelData: Uint8Array;
   pixelDataVr: "OB" | "OW";
-}
+};
 
 export const DicomImage = {
   GrayScale: DicomImageGrayScale,
@@ -172,7 +170,7 @@ export const DicomImage = {
       });
     }
 
-    return Err("Couldn't convert to Dicom Image (not gray scale or rgb");
+    return err("Couldn't convert to Dicom Image (not gray scale or rgb");
   },
 
   _fromDataForDicomImageGrayScale: ({
@@ -192,13 +190,13 @@ export const DicomImage = {
     rescaleSlope,
   }: DataFofDicomImageGrayScale): Result<DicomImageGrayScale, string> => {
     if (pixelDataVr === "OW" && bitsAllocated !== 16) {
-      return Err("Not supported pixelData VR");
+      return err("Not supported pixelData VR");
     }
     if (highBit + 1 !== bitsStored) {
-      return Err("Not supported combination of hightBit and bitsStored");
+      return err("Not supported combination of hightBit and bitsStored");
     }
     if (photometricInterpratation === PhotometricInterpratation.Monochrome1) {
-      return Err("Not supported photometricInterpratation");
+      return err("Not supported photometricInterpratation");
     }
 
     const voiLutModule: VoiLutModule = {
@@ -209,7 +207,7 @@ export const DicomImage = {
       },
     };
     if (voiLutModule.voiLutFunction !== VoiLutFunction.Linear) {
-      return Err("Not supported voiLutFunction");
+      return err("Not supported voiLutFunction");
     }
 
     const rescale: Rescale = {
@@ -221,20 +219,20 @@ export const DicomImage = {
       pixelRepresentation,
       bitsAllocated,
     ])
-      .with([PixelRepresentation.Unsigned, 8], () => Ok(new Uint8Array(pixelData.buffer)))
-      .with([PixelRepresentation.Unsigned, 16], () => Ok(new Uint16Array(pixelData.buffer)))
-      .with([PixelRepresentation.Unsigned, 32], () => Ok(new Uint32Array(pixelData.buffer)))
-      .with([PixelRepresentation.Signed, 8], () => Ok(new Int8Array(pixelData.buffer)))
-      .with([PixelRepresentation.Signed, 16], () => Ok(new Int16Array(pixelData.buffer)))
-      .with([PixelRepresentation.Signed, 32], () => Ok(new Int32Array(pixelData.buffer)))
-      .with([__, __], () => Err("Not supported Bits Allocated"))
+      .with([PixelRepresentation.Unsigned, 8], () => ok(new Uint8Array(pixelData.buffer)))
+      .with([PixelRepresentation.Unsigned, 16], () => ok(new Uint16Array(pixelData.buffer)))
+      .with([PixelRepresentation.Unsigned, 32], () => ok(new Uint32Array(pixelData.buffer)))
+      .with([PixelRepresentation.Signed, 8], () => ok(new Int8Array(pixelData.buffer)))
+      .with([PixelRepresentation.Signed, 16], () => ok(new Int16Array(pixelData.buffer)))
+      .with([PixelRepresentation.Signed, 32], () => ok(new Int32Array(pixelData.buffer)))
+      .with([__, __], () => err("Not supported Bits Allocated"))
       .exhaustive();
-    if (maybeImagePixelData._tag === "Err") {
-      return Err(maybeImagePixelData.error);
+    if (maybeImagePixelData._tag === "err") {
+      return err(maybeImagePixelData.error);
     }
     const imagePixelData = maybeImagePixelData.value;
 
-    return Ok(
+    return ok(
       DicomImage.GrayScale({
         photometricInterpratation,
 
@@ -260,13 +258,13 @@ export const DicomImage = {
     pixelDataVr, // ToDo: Maybe I should do something with it?
   }: DataForDicomImageRgb): Result<DicomImageRgb, string> => {
     if (bitsAllocated !== 8 || bitsStored !== 8 || highBit !== 7) {
-      return Err("Not supported combination of bitsAllocated, bitsStored, highBit");
+      return err("Not supported combination of bitsAllocated, bitsStored, highBit");
     }
     if (planarConfiguration === PlanarConfiguration.Separated) {
-      return Err("Not supported planarConfiguration (separated)");
+      return err("Not supported planarConfiguration (separated)");
     }
     if (pixelRepresentation === PixelRepresentation.Signed) {
-      return Err("Not supported pixelRepresentation");
+      return err("Not supported pixelRepresentation");
     }
 
     const pixelsCount = rows * columns;
@@ -279,7 +277,7 @@ export const DicomImage = {
         0xff000000;
     }
 
-    return Ok(
+    return ok(
       DicomImage.Rgb({
         rows,
         columns,
@@ -292,10 +290,10 @@ export const DicomImage = {
 type PixelDataGrayScale = Uint8Array | Int8Array | Uint16Array | Int16Array | Uint32Array | Int32Array;
 type PixelDataRgb = Uint32Array;
 
-interface Rescale {
+type Rescale = {
   readonly slope: number;
   readonly intercept: number;
-}
+};
 const Rescale = {
   default: (): Rescale => ({
     slope: 1,
@@ -303,10 +301,10 @@ const Rescale = {
   }),
 };
 
-interface Window {
+type Window = {
   readonly center: number;
   readonly width: number;
-}
+};
 const Window = {
   default: (): Window => ({
     center: 1024,
@@ -314,7 +312,7 @@ const Window = {
   }),
 };
 
-export interface VoiLutModule {
+export type VoiLutModule = {
   window: Window;
   voiLutFunction: VoiLutFunction;
-}
+};

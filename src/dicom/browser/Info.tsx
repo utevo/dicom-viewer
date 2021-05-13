@@ -1,13 +1,13 @@
-import { VoiLutModule } from "../domain/DicomObject";
+import { VoiLutModule } from "../domain/DicomImage";
 import { Position, ViewPort, WindowingOffset } from "./types";
 
-interface Props {
+type Props = {
   viewPort: ViewPort;
   voiLutModule?: VoiLutModule;
   voiLutModuleOffset?: WindowingOffset;
 
   className?: string;
-}
+};
 
 export const InfoViewer = ({ viewPort, voiLutModule, voiLutModuleOffset, className }: Props): React.ReactElement => {
   return (

@@ -1,11 +1,8 @@
-import { Image } from "konva/types/shapes/Image";
 import { match } from "ts-pattern";
-import { Result } from "../../common/adt";
+import { Result, ok, err } from "../../common/adt";
 import { WindowingOffset } from "../browser/types";
 import { DicomImage, DicomImageGrayScale, DicomImageRgb, VoiLutModule } from "./DicomImage";
 import { PhotometricInterpratation, VoiLutFunction } from "./DicomObject";
-
-const { Ok, Err } = Result;
 
 export const ImageData_ = {
   fromDicomImage: (dicomImage: DicomImage, voiLutModuleOffset: WindowingOffset): Result<ImageData, string> =>
@@ -19,11 +16,11 @@ export const ImageData_ = {
     voiLutModuleOffset: WindowingOffset
   ): Result<ImageData, string> => {
     if (dicomImage.photometricInterpratation == PhotometricInterpratation.Monochrome1) {
-      return Err(`Not supported Photometric Interpratation (${dicomImage.photometricInterpratation})`);
+      return err(`Not supported Photometric Interpratation (${dicomImage.photometricInterpratation})`);
     }
 
     const maybeLut = Lut.fromVoiLutModuleAndConfig(dicomImage.voiLutModule, voiLutModuleOffset);
-    if (maybeLut._tag === "Err") {
+    if (maybeLut._tag === "err") {
       return maybeLut;
     }
     const lut = maybeLut.value;
@@ -37,7 +34,7 @@ export const ImageData_ = {
       imageData.data[4 * idx + 3] = 255;
     }
 
-    return Ok(imageData);
+    return ok(imageData);
   },
 
   _fromDicomImageRgb: (dicomImage: DicomImageRgb): Result<ImageData, string> => {
@@ -46,7 +43,7 @@ export const ImageData_ = {
       dicomImage.columns,
       dicomImage.rows
     );
-    return Ok(imageData);
+    return ok(imageData);
   },
 };
 
@@ -54,7 +51,7 @@ type Lut = (pixelValue: number) => number;
 const Lut = {
   fromVoiLutModuleAndConfig: (voiLutModule: VoiLutModule, windowingOffset: WindowingOffset): Result<Lut, string> => {
     if (voiLutModule.voiLutFunction !== VoiLutFunction.Linear) {
-      return Err(`Not supported VOI LUT Functions (${voiLutModule.voiLutFunction})`);
+      return err(`Not supported VOI LUT Functions (${voiLutModule.voiLutFunction})`);
     }
     const windowCenter = voiLutModule.window.center + windowingOffset.windowCenterOffset;
     const windowWidth = voiLutModule.window.width + windowingOffset.windowWidthOffset;
@@ -71,6 +68,6 @@ const Lut = {
       return Math.round(a * pixelData + b);
     };
 
-    return Ok(func);
+    return ok(func);
   },
 };
