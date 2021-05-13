@@ -1,5 +1,5 @@
-import { VoiLutModule } from "../domain/DicomImage";
-import { Position, ViewPort, WindowingOffset } from "./types";
+import { VoiLutModule } from "../domain/common";
+import { ViewPort, WindowingOffset } from "./types";
 
 type Props = {
   viewPort: ViewPort;

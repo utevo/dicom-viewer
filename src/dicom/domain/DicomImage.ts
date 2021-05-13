@@ -2,13 +2,16 @@ import { match, __ } from "ts-pattern";
 import { Result, ok, err } from "../../common/adt";
 import {
   Compression,
-  DicomObject,
   PhotometricInterpratation,
   PixelRepresentation,
   PlanarConfiguration,
+  TransferSyntax_,
   VoiLutFunction,
-  VOI_LUT_FUNCTION_DEFAULT,
-} from "./DicomObject";
+  VoiLutFunction_,
+  VoiLutModule,
+  VoiLutWindow,
+} from "./common";
+import { DicomObject } from "./DicomObject";
 
 export type DicomImage = DicomImageGrayScale | DicomImageRgb;
 
@@ -87,56 +90,62 @@ export const DicomImage = {
   Rgb: DicomImageRgb,
 
   fromDicomObject: (dicomObject: DicomObject): Result<DicomImage, string> => {
-    if (dicomObject.compression === Compression.None) {
-      if (
-        (dicomObject.photometricInterpratation === PhotometricInterpratation.Monochrome1 ||
-          dicomObject.photometricInterpratation === PhotometricInterpratation.Monochrome2) &&
-        dicomObject.samplePerPixel === 1
-      ) {
-        const {
-          rows,
-          columns,
+    const transferSyntax = dicomObject.transferSyntax ?? TransferSyntax_.default();
+    const [compression, endianness] = TransferSyntax_.toCompressionAndEndianness(transferSyntax);
 
-          photometricInterpratation,
-          pixelRepresentation,
-
-          bitsAllocated,
-          bitsStored,
-          highBit,
-
-          windowCenter,
-          windowWidth,
-          voiLutFunction,
-
-          rescaleIntercept,
-          rescaleSlope,
-
-          pixelData,
-          pixelDataVr,
-        } = dicomObject;
-        return DicomImage._fromDataForDicomImageGrayScale({
-          rows,
-          columns,
-
-          photometricInterpratation,
-          pixelRepresentation,
-
-          bitsAllocated,
-          bitsStored,
-          highBit,
-
-          windowCenter,
-          windowWidth,
-          voiLutFunction,
-
-          rescaleIntercept,
-          rescaleSlope,
-
-          pixelData,
-          pixelDataVr,
-        });
-      }
+    if (compression !== Compression.None) {
+      return err("Compressed images not supported");
     }
+
+    if (
+      (dicomObject.photometricInterpratation === PhotometricInterpratation.Monochrome1 ||
+        dicomObject.photometricInterpratation === PhotometricInterpratation.Monochrome2) &&
+      dicomObject.samplePerPixel === 1
+    ) {
+      const {
+        rows,
+        columns,
+
+        photometricInterpratation,
+        pixelRepresentation,
+
+        bitsAllocated,
+        bitsStored,
+        highBit,
+
+        windowCenter,
+        windowWidth,
+        voiLutFunction,
+
+        rescaleIntercept,
+        rescaleSlope,
+
+        pixelData,
+        pixelDataVr,
+      } = dicomObject;
+      return DicomImage._fromDataForDicomImageGrayScale({
+        rows,
+        columns,
+
+        photometricInterpratation,
+        pixelRepresentation,
+
+        bitsAllocated,
+        bitsStored,
+        highBit,
+
+        windowCenter,
+        windowWidth,
+        voiLutFunction,
+
+        rescaleIntercept,
+        rescaleSlope,
+
+        pixelData,
+        pixelDataVr,
+      });
+    }
+
     if (dicomObject.samplePerPixel === 3 && dicomObject.photometricInterpratation === PhotometricInterpratation.Rgb) {
       const {
         planarConfiguration,
@@ -170,7 +179,7 @@ export const DicomImage = {
       });
     }
 
-    return err("Couldn't convert to Dicom Image (not gray scale or rgb");
+    return err("Supported only Gray Scale and Rgb");
   },
 
   _fromDataForDicomImageGrayScale: ({
@@ -200,10 +209,10 @@ export const DicomImage = {
     }
 
     const voiLutModule: VoiLutModule = {
-      voiLutFunction: voiLutFunction ?? VOI_LUT_FUNCTION_DEFAULT,
+      voiLutFunction: voiLutFunction ?? VoiLutFunction_.default(),
       window: {
-        center: windowCenter ?? Window.default().center,
-        width: windowWidth ?? Window.default().width,
+        center: windowCenter ?? VoiLutWindow.default().center,
+        width: windowWidth ?? VoiLutWindow.default().width,
       },
     };
     if (voiLutModule.voiLutFunction !== VoiLutFunction.Linear) {
@@ -299,20 +308,4 @@ const Rescale = {
     slope: 1,
     intercept: 0,
   }),
-};
-
-type Window = {
-  readonly center: number;
-  readonly width: number;
-};
-const Window = {
-  default: (): Window => ({
-    center: 1024,
-    width: 4096,
-  }),
-};
-
-export type VoiLutModule = {
-  window: Window;
-  voiLutFunction: VoiLutFunction;
 };

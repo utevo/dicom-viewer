@@ -1,8 +1,8 @@
 import { match } from "ts-pattern";
 import { Result, ok, err } from "../../common/adt";
 import { WindowingOffset } from "../browser/types";
-import { DicomImage, DicomImageGrayScale, DicomImageRgb, VoiLutModule } from "./DicomImage";
-import { PhotometricInterpratation, VoiLutFunction } from "./DicomObject";
+import { PhotometricInterpratation, VoiLutFunction, VoiLutModule } from "./common";
+import { DicomImage, DicomImageGrayScale, DicomImageRgb } from "./DicomImage";
 
 export const ImageData_ = {
   fromDicomImage: (dicomImage: DicomImage, voiLutModuleOffset: WindowingOffset): Result<ImageData, string> =>
