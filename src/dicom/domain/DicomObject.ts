@@ -1,7 +1,8 @@
 import { DataSet, parseDicom } from "dicom-parser";
-import { interpolateAs } from "next/dist/next-server/lib/router/router";
+import { match, __ } from "ts-pattern";
 import { Result } from "../../common/adt";
 
+const { Ok, Err } = Result;
 export interface DicomObject {
   compression: Compression;
   endianness: Endianness;
@@ -39,86 +40,84 @@ export const DicomObject = {
     try {
       dataSet = parseDicom(byteArray);
     } catch (e) {
-      return Result.Err(String(e));
+      return Err(String(e));
     }
 
     return DicomObject._fromDataSet(dataSet);
   },
   _fromDataSet: (dataSet: DataSet): Result<DicomObject, string> => {
     const transferSyntax = TransferSyntax_.fromTransferSyntaxUID(dataSet.string("x00020012"));
+    if (transferSyntax == null) {
+      return Err("DicomImage need to have Transfer Syntax");
+    }
 
     const [compression, endianness] = TransferSyntax_.toCompressionAndEndianness(transferSyntax);
 
     const rows = dataSet.uint16("x00280010");
-    if (rows == null) return Result.Err("DicomImage need to have rows");
+    if (rows == null) return Err("DicomImage need to have rows");
 
     const columns = dataSet.uint16("x00280011");
     if (columns == null) {
-      return Result.Err("DicomImage need to have columns");
+      return Err("DicomImage need to have columns");
     }
     const samplePerPixel = dataSet.uint16("x00280002");
-    if (samplePerPixel == null) return Result.Err("DicomImage need to have samplePerPixel");
+    if (samplePerPixel == null) return Err("DicomImage need to have samplePerPixel");
 
     const photometricInterpratationValue = dataSet.string("x00280004");
     if (photometricInterpratationValue == null) {
-      return Result.Err("DicomImage need to have photometricInterpratation");
+      return Err("DicomImage need to have photometricInterpratation");
     }
 
     const photometricInterpratation = photometricInterpratationValue as PhotometricInterpratation; // ToDo: Need validation
 
     const planarConfigurationValue = dataSet.uint16("x00280006") ?? 0;
-    let planarConfiguration: PlanarConfiguration;
-    switch (planarConfigurationValue) {
-      case 0:
-        planarConfiguration = PlanarConfiguration.Interlaced;
-        break;
-
-      case 1:
-        planarConfiguration = PlanarConfiguration.Separated;
-        break;
-
-      default:
-        return Result.Err("DicomImage have incorrect planarConfiguration");
+    const maybePlanarConfiguration = match<PlanarConfiguration, Result<PlanarConfiguration, string>>(
+      planarConfigurationValue
+    )
+      .with(0, () => Ok(PlanarConfiguration.Interlaced))
+      .with(1, () => Ok(PlanarConfiguration.Separated))
+      .with(__, () => Err("Dicom Image have incorrect Planar Configuration"))
+      .exhaustive();
+    if (maybePlanarConfiguration._tag === "Err") {
+      return maybePlanarConfiguration;
     }
+    const planarConfiguration = maybePlanarConfiguration.value;
 
     const bitsAllocated = dataSet.uint16("x00280100");
-    if (bitsAllocated == null) return Result.Err("DicomImage need to have bitsAllocated");
+    if (bitsAllocated == null) return Err("Dicom Image need to have Bits Allocated");
 
     const bitsStored = dataSet.uint16("x00280101");
-    if (bitsStored == null) return Result.Err("DicomImage need to have bitsStored");
+    if (bitsStored == null) return Err("Dicom Image need to have Bits Stored");
 
     const highBit = dataSet.uint16("x00280102");
-    if (highBit == null) return Result.Err("DicomImage need to have highBit");
+    if (highBit == null) return Err("Dicom Image need to have High Bit");
 
     const pixelRepresentationValue = dataSet.uint16("x00280103");
-    if (pixelRepresentationValue == null) return Result.Err("DicomImage need to have Pixel Representation value");
+    if (pixelRepresentationValue == null) return Err("DicomImage need to have Pixel Representation value");
 
-    let pixelRepresentation: PixelRepresentation;
-    switch (pixelRepresentationValue) {
-      case 0:
-        pixelRepresentation = PixelRepresentation.Unsigned;
-        break;
-      case 1:
-        pixelRepresentation = PixelRepresentation.Signed;
-        break;
-      default:
-        return Result.Err("Unexpected value of Pixel Representation");
+    const maybePixelRepresentation = match<number, Result<PixelRepresentation, string>>(pixelRepresentationValue)
+      .with(0, () => Ok(PixelRepresentation.Unsigned))
+      .with(1, () => Ok(PixelRepresentation.Signed))
+      .with(__, () => Err("Unexpected value of Pixel Representation"))
+      .exhaustive();
+    if (maybePixelRepresentation._tag === "Err") {
+      return maybePixelRepresentation;
     }
+    const pixelRepresentation = maybePixelRepresentation.value;
 
     const pixelDataElement = dataSet.elements.x7fe00010;
     const pixelDataVrValue = pixelDataElement.vr ?? "OB";
 
-    let pixelDataVr: "OB" | "OW";
-    switch (pixelDataVrValue) {
-      case "OB":
-        pixelDataVr = "OB";
-        break;
-      case "OW":
-        pixelDataVr = "OW";
-        break;
-      default:
-        return Result.Err("Unexpected pixelData VR");
+    const maybePixelDataVr = match<string, Result<"OB" | "OW", string>>(pixelDataVrValue)
+      .with("OB", () => Ok("OB"))
+      .with("OW", () => Ok("OW"))
+      .with(__, () => Err("Unexpected Pixel Data VR"))
+      .exhaustive();
+    if (maybePixelDataVr._tag === "Err") {
+      return maybePixelDataVr;
     }
+    const pixelDataVr = maybePixelDataVr.value;
+
     const pixelData = new Uint8Array(pixelDataElement.length);
     for (let idx = 0; idx < pixelDataElement.length; idx += 1) {
       pixelData[idx] = dataSet.byteArray[pixelDataElement.dataOffset + idx];
@@ -136,10 +135,10 @@ export const DicomObject = {
     const voiLutSequenceElement = dataSet.elements.x00283010;
 
     if (voiLutSequenceElement != null) {
-      return Result.Err("Not supported voiLutSequence");
+      return Err("Not supported voiLutSequence");
     }
 
-    return Result.Ok({
+    return Ok({
       compression,
       endianness,
 
@@ -179,49 +178,26 @@ export enum TransferSyntax {
 }
 
 export const TransferSyntax_ = {
-  fromTransferSyntaxUID: (transferSyntaxUID: string): TransferSyntax => {
-    switch (transferSyntaxUID) {
-      case "1.2.840.10008.1.2.4.90":
-      case "1.2.840.10008.1.2.4.91":
-        return TransferSyntax.JPEG2000;
+  fromTransferSyntaxUID: (transferSyntax: string): TransferSyntax | null =>
+    match<string, TransferSyntax | null>(transferSyntax)
+      .with("1.2.840.10008.1.2", "1.2.840.10008.1.2.1", () => TransferSyntax.UncompressedLE)
+      .with("1.2.840.10008.1.2.2", () => TransferSyntax.UncompressedBE)
+      .with("1.2.840.10008.1.2.4.90", "1.2.840.10008.1.2.4.91", () => TransferSyntax.JPEG2000)
+      .with("1.2.840.10008.1.2.5", () => TransferSyntax.DecodeRLE)
+      .with("1.2.840.10008.1.2.4.57", "1.2.840.10008.1.2.4.70", () => TransferSyntax.JPEGLossless)
+      .with("1.2.840.10008.1.2.4.50", "1.2.840.10008.1.2.4.51", () => TransferSyntax.JPEGBaseline)
+      .with(__, () => null)
+      .exhaustive(),
 
-      case "1.2.840.10008.1.2.5":
-        return TransferSyntax.DecodeRLE;
-
-      case "1.2.840.10008.1.2.4.57":
-      case "1.2.840.10008.1.2.4.70":
-        return TransferSyntax.JPEGLossless;
-
-      case "1.2.840.10008.1.2.4.50":
-      case "1.2.840.10008.1.2.4.51":
-        return TransferSyntax.JPEGBaseline;
-
-      case "1.2.840.10008.1.2":
-      case "1.2.840.10008.1.2.1":
-        return TransferSyntax.UncompressedLE;
-
-      case "1.2.840.10008.1.2.2":
-      default:
-        return TransferSyntax.UncompressedBE;
-    }
-  },
-
-  toCompressionAndEndianness: (transferSyntax: TransferSyntax): [Compression, Endianness] => {
-    switch (transferSyntax) {
-      case TransferSyntax.UncompressedBE:
-        return [Compression.None, Endianness.BigEndian];
-      case TransferSyntax.UncompressedLE:
-        return [Compression.None, Endianness.LittleEndian];
-      case TransferSyntax.DecodeRLE:
-        return [Compression.Rle, Endianness.LittleEndian];
-      case TransferSyntax.JPEGLossless:
-        return [Compression.JpegLossless, Endianness.LittleEndian];
-      case TransferSyntax.JPEG2000:
-        return [Compression.Jpeg2000, Endianness.LittleEndian];
-      case TransferSyntax.JPEGBaseline:
-        return [Compression.JpegBaseline, Endianness.LittleEndian];
-    }
-  },
+  toCompressionAndEndianness: (transferSyntax: TransferSyntax): [Compression, Endianness] =>
+    match<TransferSyntax, [Compression, Endianness]>(transferSyntax)
+      .with(TransferSyntax.UncompressedBE, () => [Compression.None, Endianness.BigEndian])
+      .with(TransferSyntax.UncompressedLE, () => [Compression.None, Endianness.LittleEndian])
+      .with(TransferSyntax.DecodeRLE, () => [Compression.Rle, Endianness.LittleEndian])
+      .with(TransferSyntax.JPEGLossless, () => [Compression.JpegLossless, Endianness.LittleEndian])
+      .with(TransferSyntax.JPEG2000, () => [Compression.Jpeg2000, Endianness.LittleEndian])
+      .with(TransferSyntax.JPEGBaseline, () => [Compression.JpegBaseline, Endianness.LittleEndian])
+      .exhaustive(),
 };
 
 export enum Endianness {

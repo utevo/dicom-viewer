@@ -1,3 +1,4 @@
+import { match, __ } from "ts-pattern";
 import { Result } from "../../common/adt";
 import {
   Compression,
@@ -9,14 +10,12 @@ import {
   VOI_LUT_FUNCTION_DEFAULT,
 } from "./DicomObject";
 
+const { Ok, Err } = Result;
+
 export type DicomImage = DicomImageGrayScale | DicomImageRgb;
-export enum DicomImageTag {
-  GrayScale = "grayScale",
-  Rgb = "rgb",
-}
 
 export interface DicomImageGrayScale {
-  _tag: DicomImageTag.GrayScale;
+  _tag: "GrayScale";
 
   photometricInterpratation: PhotometricInterpratation.Monochrome1 | PhotometricInterpratation.Monochrome2;
   voiLutModule: VoiLutModule;
@@ -27,7 +26,7 @@ export interface DicomImageGrayScale {
   pixelData: PixelDataGrayScale;
 }
 export interface DicomImageRgb {
-  _tag: DicomImageTag.Rgb;
+  _tag: "Rgb";
 
   rows: number;
   columns: number;
@@ -36,13 +35,13 @@ export interface DicomImageRgb {
 
 const DicomImageGrayScale = (props: Omit<DicomImageGrayScale, "_tag">): DicomImageGrayScale => {
   return {
-    _tag: DicomImageTag.GrayScale,
+    _tag: "GrayScale",
     ...props,
   };
 };
 const DicomImageRgb = (props: Omit<DicomImageRgb, "_tag">): DicomImageRgb => {
   return {
-    _tag: DicomImageTag.Rgb,
+    _tag: "Rgb",
     ...props,
   };
 };
@@ -173,7 +172,7 @@ export const DicomImage = {
       });
     }
 
-    return Result.Err("Couldn't convert to Dicom Image (not gray scale or rgb");
+    return Err("Couldn't convert to Dicom Image (not gray scale or rgb");
   },
 
   _fromDataForDicomImageGrayScale: ({
@@ -193,13 +192,13 @@ export const DicomImage = {
     rescaleSlope,
   }: DataFofDicomImageGrayScale): Result<DicomImageGrayScale, string> => {
     if (pixelDataVr === "OW" && bitsAllocated !== 16) {
-      return Result.Err("Not supported pixelData VR");
+      return Err("Not supported pixelData VR");
     }
     if (highBit + 1 !== bitsStored) {
-      return Result.Err("Not supported combination of hightBit and bitsStored");
+      return Err("Not supported combination of hightBit and bitsStored");
     }
     if (photometricInterpratation === PhotometricInterpratation.Monochrome1) {
-      return Result.Err("Not supported photometricInterpratation");
+      return Err("Not supported photometricInterpratation");
     }
 
     const voiLutModule: VoiLutModule = {
@@ -210,7 +209,7 @@ export const DicomImage = {
       },
     };
     if (voiLutModule.voiLutFunction !== VoiLutFunction.Linear) {
-      return Result.Err("Not supported voiLutFunction");
+      return Err("Not supported voiLutFunction");
     }
 
     const rescale: Rescale = {
@@ -218,42 +217,24 @@ export const DicomImage = {
       intercept: rescaleIntercept ?? Rescale.default().intercept,
     };
 
-    let imagePixelData;
-    switch (pixelRepresentation) {
-      case PixelRepresentation.Unsigned:
-        switch (bitsAllocated) {
-          case 8:
-            imagePixelData = new Uint8Array(pixelData.buffer);
-            break;
-          case 16:
-            imagePixelData = new Uint16Array(pixelData.buffer);
-            break;
-          case 32:
-            imagePixelData = new Uint32Array(pixelData.buffer);
-            break;
-          default:
-            return Result.Err("Not supported Bits Allocated");
-        }
-        break;
-
-      case PixelRepresentation.Signed:
-        switch (bitsAllocated) {
-          case 8:
-            imagePixelData = new Int8Array(pixelData.buffer);
-            break;
-          case 16:
-            imagePixelData = new Int16Array(pixelData.buffer);
-            break;
-          case 32:
-            imagePixelData = new Int32Array(pixelData.buffer);
-            break;
-          default:
-            return Result.Err("Not supported Bits Allocated");
-        }
-        break;
+    const maybeImagePixelData = match<[PixelRepresentation, number], Result<PixelDataGrayScale, string>>([
+      pixelRepresentation,
+      bitsAllocated,
+    ])
+      .with([PixelRepresentation.Unsigned, 8], () => Ok(new Uint8Array(pixelData.buffer)))
+      .with([PixelRepresentation.Unsigned, 16], () => Ok(new Uint16Array(pixelData.buffer)))
+      .with([PixelRepresentation.Unsigned, 32], () => Ok(new Uint32Array(pixelData.buffer)))
+      .with([PixelRepresentation.Signed, 8], () => Ok(new Int8Array(pixelData.buffer)))
+      .with([PixelRepresentation.Signed, 16], () => Ok(new Int16Array(pixelData.buffer)))
+      .with([PixelRepresentation.Signed, 32], () => Ok(new Int32Array(pixelData.buffer)))
+      .with([__, __], () => Err("Not supported Bits Allocated"))
+      .exhaustive();
+    if (maybeImagePixelData._tag === "Err") {
+      return Err(maybeImagePixelData.error);
     }
+    const imagePixelData = maybeImagePixelData.value;
 
-    return Result.Ok(
+    return Ok(
       DicomImage.GrayScale({
         photometricInterpratation,
 
@@ -279,13 +260,13 @@ export const DicomImage = {
     pixelDataVr, // ToDo: Maybe I should do something with it?
   }: DataForDicomImageRgb): Result<DicomImageRgb, string> => {
     if (bitsAllocated !== 8 || bitsStored !== 8 || highBit !== 7) {
-      return Result.Err("Not supported combination of bitsAllocated, bitsStored, highBit");
+      return Err("Not supported combination of bitsAllocated, bitsStored, highBit");
     }
     if (planarConfiguration === PlanarConfiguration.Separated) {
-      return Result.Err("Not supported planarConfiguration (separated)");
+      return Err("Not supported planarConfiguration (separated)");
     }
     if (pixelRepresentation === PixelRepresentation.Signed) {
-      return Result.Err("Not supported pixelRepresentation");
+      return Err("Not supported pixelRepresentation");
     }
 
     const pixelsCount = rows * columns;
@@ -298,7 +279,7 @@ export const DicomImage = {
         0xff000000;
     }
 
-    return Result.Ok(
+    return Ok(
       DicomImage.Rgb({
         rows,
         columns,

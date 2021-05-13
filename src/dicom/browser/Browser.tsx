@@ -4,15 +4,15 @@ import clsx from "clsx";
 import AutoSizer from "react-virtualized-auto-sizer";
 import { Tool, ToolsController } from "./Tools";
 import { Workspace } from "./Workspace";
-import { DicomImage, DicomImageTag } from "../domain/DicomImage";
+import { DicomImage } from "../domain/DicomImage";
 import { DicomObject } from "../domain/DicomObject";
 import { Position, ViewPort, WindowingOffset } from "./types";
 import { InputDirectory } from "./InputDirectory";
 import { FilesController } from "./Files";
-import { ResultTag } from "../../common/adt";
 import { ImageData_ } from "../domain/ImageData";
 import { useNotify } from "../../common/notify";
 import { InfoViewer } from "./Info";
+import { match } from "ts-pattern";
 
 interface Props {
   className?: string;
@@ -32,14 +32,14 @@ export const Browser = ({ className }: Props): React.ReactElement => {
 
   const handleDicomObjectChange = (newDicomObject: DicomObject) => {
     const dicomImage = DicomImage.fromDicomObject(newDicomObject);
-    if (dicomImage._tag === ResultTag.Err) {
-      notify.error(dicomImage.value);
+    if (dicomImage._tag === "Err") {
+      notify.error(dicomImage.error);
       return;
     }
 
     const imageData = ImageData_.fromDicomImage(dicomImage.value, windowingOffset);
-    if (imageData._tag === ResultTag.Err) {
-      notify.error(imageData.value);
+    if (imageData._tag === "Err") {
+      notify.error(imageData.error);
       return;
     }
 
@@ -53,8 +53,8 @@ export const Browser = ({ className }: Props): React.ReactElement => {
       return;
     }
     const imageData = ImageData_.fromDicomImage(dicomImage, windowingOffset);
-    if (imageData._tag === ResultTag.Err) {
-      notify.error(imageData.value);
+    if (imageData._tag === "Err") {
+      notify.error(imageData.error);
       return;
     }
 
@@ -73,10 +73,10 @@ export const Browser = ({ className }: Props): React.ReactElement => {
       y: currMousePosition.y - prevMousePosition.y,
     };
 
-    switch (tool) {
-      case Tool.Windowing: {
+    match(tool)
+      .with(Tool.Cursor, () => {
         if (mouseDown !== true) {
-          break;
+          return;
         }
 
         const newWindowingOffset: WindowingOffset = {
@@ -84,12 +84,21 @@ export const Browser = ({ className }: Props): React.ReactElement => {
           windowWidthOffset: windowingOffset.windowWidthOffset + -mousePositionDiff.y,
         };
         setWindowingOffset(newWindowingOffset);
-        break;
-      }
-
-      case Tool.Pan: {
+      })
+      .with(Tool.Windowing, () => {
         if (mouseDown !== true) {
-          break;
+          return;
+        }
+
+        const newWindowingOffset: WindowingOffset = {
+          windowCenterOffset: windowingOffset.windowCenterOffset + mousePositionDiff.x,
+          windowWidthOffset: windowingOffset.windowWidthOffset + -mousePositionDiff.y,
+        };
+        setWindowingOffset(newWindowingOffset);
+      })
+      .with(Tool.Pan, () => {
+        if (mouseDown !== true) {
+          return;
         }
 
         const newViewPort = {
@@ -100,11 +109,11 @@ export const Browser = ({ className }: Props): React.ReactElement => {
           },
         };
         setViewPort(newViewPort);
-        break;
-      }
-
-      case Tool.Rotate: {
-        if (mouseDown !== true) break;
+      })
+      .with(Tool.Rotate, () => {
+        if (mouseDown !== true) {
+          return;
+        }
 
         const rotationDiff = -mousePositionDiff.y / 4;
         const newViewPort: ViewPort = {
@@ -112,11 +121,11 @@ export const Browser = ({ className }: Props): React.ReactElement => {
           rotation: viewPort.rotation + rotationDiff,
         };
         setViewPort(newViewPort);
-        break;
-      }
-
-      case Tool.Zoom: {
-        if (mouseDown !== true) break;
+      })
+      .with(Tool.Zoom, () => {
+        if (mouseDown !== true) {
+          return;
+        }
 
         const zoomDiff = -(currMousePosition.y - prevMousePosition.y) / 600;
         console;
@@ -126,9 +135,8 @@ export const Browser = ({ className }: Props): React.ReactElement => {
         };
         console.log(newViewPort);
         setViewPort(newViewPort);
-        break;
-      }
-    }
+      })
+      .exhaustive();
 
     setPrevMousePosition(currMousePosition);
   };
@@ -145,8 +153,8 @@ export const Browser = ({ className }: Props): React.ReactElement => {
 
   const handleFileChange = async (file: File): Promise<void> => {
     const dicomObject = await DicomObject.fromFile(file);
-    if (dicomObject._tag === ResultTag.Err) {
-      notify.error(dicomObject.value);
+    if (dicomObject._tag === "Err") {
+      notify.error(dicomObject.error);
       return;
     }
     handleDicomObjectChange(dicomObject.value);
@@ -182,7 +190,7 @@ export const Browser = ({ className }: Props): React.ReactElement => {
       <InfoViewer
         className="fixed bottom-5 right-5"
         viewPort={viewPort}
-        voiLutModule={dicomImage?._tag === DicomImageTag.GrayScale ? dicomImage.voiLutModule : undefined}
+        voiLutModule={dicomImage?._tag === "GrayScale" ? dicomImage.voiLutModule : undefined}
         voiLutModuleOffset={windowingOffset}
       />
     </div>
@@ -193,6 +201,7 @@ interface Size {
   width: number;
   height: number;
 }
+
 const calcViewPortDefault = (workspaceSize: Size, imageSize: Size): ViewPort => {
   return {
     position: { x: workspaceSize.width / 2 - imageSize.width / 2, y: workspaceSize.height / 2 - imageSize.height / 2 },

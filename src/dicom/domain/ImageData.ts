@@ -1,28 +1,29 @@
-import { Result, ResultTag } from "../../common/adt";
+import { Image } from "konva/types/shapes/Image";
+import { match } from "ts-pattern";
+import { Result } from "../../common/adt";
 import { WindowingOffset } from "../browser/types";
-import { DicomImage, DicomImageGrayScale, DicomImageRgb, DicomImageTag, VoiLutModule } from "./DicomImage";
+import { DicomImage, DicomImageGrayScale, DicomImageRgb, VoiLutModule } from "./DicomImage";
 import { PhotometricInterpratation, VoiLutFunction } from "./DicomObject";
 
-export const ImageData_ = {
-  fromDicomImage(dicomImage: DicomImage, voiLutModuleOffset: WindowingOffset): Result<ImageData, string> {
-    switch (dicomImage._tag) {
-      case DicomImageTag.GrayScale:
-        return ImageData_._fromDicomImageGrayScale(dicomImage, voiLutModuleOffset);
-      case DicomImageTag.Rgb:
-        return ImageData_._fromDicomImageRgb(dicomImage);
-    }
-  },
+const { Ok, Err } = Result;
 
-  _fromDicomImageGrayScale(
+export const ImageData_ = {
+  fromDicomImage: (dicomImage: DicomImage, voiLutModuleOffset: WindowingOffset): Result<ImageData, string> =>
+    match<DicomImage, Result<ImageData, string>>(dicomImage)
+      .with({ _tag: "GrayScale" }, (dicomImage) => ImageData_._fromDicomImageGrayScale(dicomImage, voiLutModuleOffset))
+      .with({ _tag: "Rgb" }, (dicomImage) => ImageData_._fromDicomImageRgb(dicomImage))
+      .exhaustive(),
+
+  _fromDicomImageGrayScale: (
     dicomImage: DicomImageGrayScale,
     voiLutModuleOffset: WindowingOffset
-  ): Result<ImageData, string> {
+  ): Result<ImageData, string> => {
     if (dicomImage.photometricInterpratation == PhotometricInterpratation.Monochrome1) {
-      return Result.Err(`Not supported Photometric Interpratation (${dicomImage.photometricInterpratation})`);
+      return Err(`Not supported Photometric Interpratation (${dicomImage.photometricInterpratation})`);
     }
 
     const maybeLut = Lut.fromVoiLutModuleAndConfig(dicomImage.voiLutModule, voiLutModuleOffset);
-    if (maybeLut._tag === ResultTag.Err) {
+    if (maybeLut._tag === "Err") {
       return maybeLut;
     }
     const lut = maybeLut.value;
@@ -36,16 +37,16 @@ export const ImageData_ = {
       imageData.data[4 * idx + 3] = 255;
     }
 
-    return Result.Ok(imageData);
+    return Ok(imageData);
   },
 
-  _fromDicomImageRgb(dicomImage: DicomImageRgb): Result<ImageData, string> {
+  _fromDicomImageRgb: (dicomImage: DicomImageRgb): Result<ImageData, string> => {
     const imageData = new ImageData(
       new Uint8ClampedArray(dicomImage.pixelData.buffer),
       dicomImage.columns,
       dicomImage.rows
     );
-    return Result.Ok(imageData);
+    return Ok(imageData);
   },
 };
 
@@ -53,7 +54,7 @@ type Lut = (pixelValue: number) => number;
 const Lut = {
   fromVoiLutModuleAndConfig: (voiLutModule: VoiLutModule, windowingOffset: WindowingOffset): Result<Lut, string> => {
     if (voiLutModule.voiLutFunction !== VoiLutFunction.Linear) {
-      return Result.Err(`Not supported VOI LUT Functions (${voiLutModule.voiLutFunction})`);
+      return Err(`Not supported VOI LUT Functions (${voiLutModule.voiLutFunction})`);
     }
     const windowCenter = voiLutModule.window.center + windowingOffset.windowCenterOffset;
     const windowWidth = voiLutModule.window.width + windowingOffset.windowWidthOffset;
@@ -70,6 +71,6 @@ const Lut = {
       return Math.round(a * pixelData + b);
     };
 
-    return Result.Ok(func);
+    return Ok(func);
   },
 };

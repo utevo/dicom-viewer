@@ -1,27 +1,23 @@
 export type Result<T, E> = Ok<T> | Err<E>;
-export enum ResultTag {
-  Ok,
-  Err,
-}
 interface Ok<T> {
-  _tag: ResultTag.Ok;
+  _tag: "Ok";
   value: T;
 }
 interface Err<E> {
-  _tag: ResultTag.Err;
-  value: E;
+  _tag: "Err";
+  error: E;
 }
 
 const Ok = <T>(value: T): Ok<T> => {
   return {
-    _tag: ResultTag.Ok,
+    _tag: "Ok",
     value,
   };
 };
-const Err = <E>(value: E): Err<E> => {
+const Err = <E>(error: E): Err<E> => {
   return {
-    _tag: ResultTag.Err,
-    value,
+    _tag: "Err",
+    error: error,
   };
 };
 
