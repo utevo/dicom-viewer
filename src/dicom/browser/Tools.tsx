@@ -1,5 +1,13 @@
 import { Tooltip } from "@chakra-ui/react";
-import { RiCursorLine, RiDragMove2Fill, RiRestartLine, RiWindow2Line, RiZoomInLine } from "react-icons/ri";
+import {
+  RiArrowGoBackLine,
+  RiCursorLine,
+  RiDragMove2Fill,
+  RiInformationLine,
+  RiRestartLine,
+  RiWindow2Line,
+  RiZoomInLine,
+} from "react-icons/ri";
 import clsx from "clsx";
 import React from "react";
 import { IconType } from "react-icons";
@@ -10,68 +18,98 @@ export enum Tool {
   Rotate = "ROTATE",
   Windowing = "WINDOWING",
   Zoom = "ZOOM",
+  ShowDetails = "SHOW_DETAILS",
+  ResetView = "RESET_VIEW",
 }
 
-type ConfigRow = {
+type ToolConfig = {
   tool: Tool;
   label: string;
   icon: IconType;
 };
 
-const config: ConfigRow[] = [
-  {
-    tool: Tool.Cursor,
-    label: "Cursor",
-    icon: RiCursorLine,
-  },
-  {
-    tool: Tool.Windowing,
-    label: "Windowing",
-    icon: RiWindow2Line,
-  },
-  {
-    tool: Tool.Pan,
-    label: "Move",
-    icon: RiDragMove2Fill,
-  },
-  {
-    tool: Tool.Rotate,
-    label: "Rotate",
-    icon: RiRestartLine,
-  },
-  {
-    tool: Tool.Zoom,
-    label: "Zoom",
-    icon: RiZoomInLine,
-  },
+type CollectionOfTools = ToolConfig[];
+
+type Config = CollectionOfTools[];
+
+const config: Config = [
+  [
+    {
+      tool: Tool.Cursor,
+      label: "Cursor",
+      icon: RiCursorLine,
+    },
+    {
+      tool: Tool.Windowing,
+      label: "Windowing",
+      icon: RiWindow2Line,
+    },
+    {
+      tool: Tool.Pan,
+      label: "Move",
+      icon: RiDragMove2Fill,
+    },
+    {
+      tool: Tool.Rotate,
+      label: "Rotate",
+      icon: RiRestartLine,
+    },
+    {
+      tool: Tool.Zoom,
+      label: "Zoom",
+      icon: RiZoomInLine,
+    },
+  ],
+  [
+    {
+      tool: Tool.ShowDetails,
+      label: "Show Details",
+      icon: RiInformationLine,
+    },
+    {
+      tool: Tool.ResetView,
+      label: "Reset View",
+      icon: RiArrowGoBackLine,
+    },
+  ],
 ];
 
 type Props = {
   tool: Tool;
-  onToolChange: (newTool: Tool) => void;
+  onToolClick: (newTool: Tool) => void;
 
   className?: string;
 };
+const x = <div>{<div>{2 + 2} asd</div>}</div>;
 
-export const ToolsController = ({ tool: selectedTool, onToolChange, className }: Props): React.ReactElement => {
+export const ToolBar = ({ tool: selectedTool, onToolClick, className }: Props): React.ReactElement => {
   return (
-    <div className={clsx("flex flex-row justify-center space-x-2 m-3 p-1 bg-white rounded-2xl shadow-lg", className)}>
-      {config.map(({ tool, label, icon }) => {
-        return (
-          <ToolButton key={tool} onClick={() => onToolChange(tool)}>
-            <Tooltip className="transition duration-150 ease-in-out hover:scale-125" hasArrow label={label}>
-              <span>
-                {icon({
-                  className: clsx(
-                    "w-12 h-12 transition duration-150 ease-in-out transform hover:scale-125",
-                    selectedTool === tool && "border-4 border-red-600 rounded-xl"
-                  ),
-                })}
-              </span>
-            </Tooltip>
-          </ToolButton>
-        );
-      })}
+    <div
+      className={clsx(
+        "flex flex-row justify-center space-x-2 m-3 p-2 bg-white rounded-2xl shadow-lg divide-x divide-solid",
+        className
+      )}
+    >
+      {config.map((collectionOfTools, idx) => (
+        <div className="px-3" key={idx}>
+          {collectionOfTools.map(({ tool, label, icon }) => {
+            return (
+              <ToolButton key={tool} onClick={() => onToolClick(tool)}>
+                <Tooltip className="transition duration-150 ease-in-out hover:scale-125" hasArrow label={label}>
+                  <span>
+                    {icon({
+                      className: clsx(
+                        "w-12 h-12 transition duration-150 ease-in-out transform hover:scale-125",
+                        selectedTool === tool && "border-4 border-red-600 rounded-xl"
+                      ),
+                    })}
+                  </span>
+                </Tooltip>
+              </ToolButton>
+            );
+          })}
+        </div>
+      ))}
     </div>
   );
 };
@@ -81,5 +119,9 @@ type ToolButtonProps = {
   children: React.ReactNode;
 };
 const ToolButton = ({ onClick, children }: ToolButtonProps): React.ReactElement => {
-  return <button onClick={onClick}>{children}</button>;
+  return (
+    <button className="px-1" onClick={onClick}>
+      {children}
+    </button>
+  );
 };

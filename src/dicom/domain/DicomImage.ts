@@ -179,7 +179,7 @@ export const DicomImage = {
       });
     }
 
-    return err("Supported only Gray Scale and Rgb");
+    return err("Supported only Gray Scale and Rgb images");
   },
 
   _fromDataForDicomImageGrayScale: ({

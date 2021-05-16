@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import Konva from "konva";
 import clsx from "clsx";
 import AutoSizer from "react-virtualized-auto-sizer";
-import { Tool, ToolsController } from "./Tools";
+import { Tool, ToolBar } from "./Tools";
 import { Workspace } from "./Workspace";
 import { DicomImage } from "../domain/DicomImage";
 import { DicomObject } from "../domain/DicomObject";
@@ -59,8 +59,7 @@ export const Browser = ({ className }: Props): React.ReactElement => {
     }
 
     setImageData(imageData.value);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dicomImage, windowingOffset]);
+  }, [dicomImage, notify, windowingOffset]);
 
   const handleMouseDown = (evt: Konva.KonvaEventObject<MouseEvent>): void => {
     setMouseDown(true);
@@ -160,6 +159,10 @@ export const Browser = ({ className }: Props): React.ReactElement => {
     handleDicomObjectChange(dicomObject.value);
   };
 
+  const handleToolClick = (tool: Tool): void => {
+    match(tool).when(Tool).exhaustive()
+  };
+
   return (
     <div className={clsx("w-full h-full flex", className)}>
       <div className="w-96 flex flex-col m-3 p-1 bg-white rounded-2xl shadow-lg space-y-3 overflow-hidden">
@@ -169,7 +172,7 @@ export const Browser = ({ className }: Props): React.ReactElement => {
         </div>
       </div>
       <div className="flex-1 flex flex-col">
-        <ToolsController tool={tool} onToolChange={setTool} />
+        <ToolBar tool={tool} onToolClick={setTool} />
         <div className="flex-1 m-3 bg-white rounded-2xl shadow-lg">
           <AutoSizer onResize={setWorkspaceSize}>
             {({ width, height }) => (

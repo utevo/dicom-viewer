@@ -57,26 +57,24 @@ export const DicomObject = {
       | undefined;
 
     const rows = dataSet.uint16("x00280010");
-    if (rows == null) return err("DicomImage need to have rows");
+    if (rows == null) return err("Dicom Object need to have rows");
 
     const columns = dataSet.uint16("x00280011");
     if (columns == null) {
-      return err("DicomImage need to have columns");
+      return err("Dicom Object need to have columns");
     }
     const samplePerPixel = dataSet.uint16("x00280002");
-    if (samplePerPixel == null) return err("DicomImage need to have samplePerPixel");
+    if (samplePerPixel == null) return err("Dicom Object need to have samplePerPixel");
 
     const photometricInterpratationValue = dataSet.string("x00280004");
     if (photometricInterpratationValue == null) {
-      return err("DicomImage need to have photometricInterpratation");
+      return err("Dicom Object need to have photometricInterpratation");
     }
 
     const photometricInterpratation = photometricInterpratationValue as PhotometricInterpratation; // ToDo: Need validation
 
     const planarConfigurationValue = dataSet.uint16("x00280006") ?? 0;
-    const maybePlanarConfiguration = match<PlanarConfiguration, Result<PlanarConfiguration, string>>(
-      planarConfigurationValue
-    )
+    const maybePlanarConfiguration = match(planarConfigurationValue)
       .with(0, () => ok(PlanarConfiguration.Interlaced))
       .with(1, () => ok(PlanarConfiguration.Separated))
       .with(__, () => err("Dicom Image have incorrect Planar Configuration"))
@@ -96,7 +94,7 @@ export const DicomObject = {
     if (highBit == null) return err("Dicom Image need to have High Bit");
 
     const pixelRepresentationValue = dataSet.uint16("x00280103");
-    if (pixelRepresentationValue == null) return err("DicomImage need to have Pixel Representation value");
+    if (pixelRepresentationValue == null) return err("Dicom Object need to have Pixel Representation value");
 
     const maybePixelRepresentation = match<number, Result<PixelRepresentation, string>>(pixelRepresentationValue)
       .with(0, () => ok(PixelRepresentation.Unsigned))
