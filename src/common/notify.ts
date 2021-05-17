@@ -1,4 +1,5 @@
 import { useToast } from "@chakra-ui/react";
+import { useMemo } from "react";
 
 type Notify = {
   error: (message: string) => void;
@@ -6,7 +7,10 @@ type Notify = {
 
 export const useNotify = (): Notify => {
   const toast = useToast();
-  return {
-    error: (message: string) => toast({ title: message, status: "error", isClosable: true }),
-  };
+  return useMemo(
+    () => ({
+      error: (message: string) => toast({ title: message, status: "error", isClosable: true }),
+    }),
+    [toast]
+  );
 };

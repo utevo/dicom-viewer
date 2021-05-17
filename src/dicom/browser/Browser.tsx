@@ -12,7 +12,7 @@ import { FilesController } from "./Files";
 import { ImageData_ } from "../domain/ImageData";
 import { useNotify } from "../../common/notify";
 import { InfoViewer } from "./Info";
-import { match } from "ts-pattern";
+import { match, __ } from "ts-pattern";
 
 type Props = {
   className?: string;
@@ -31,34 +31,29 @@ export const Browser = ({ className }: Props): React.ReactElement => {
   const [workspaceSize, setWorkspaceSize] = useState<Size>({ width: 0, height: 0 });
 
   const handleDicomObjectChange = (newDicomObject: DicomObject) => {
-    const dicomImage = DicomImage.fromDicomObject(newDicomObject);
-    if (dicomImage._tag === "err") {
-      notify.error(dicomImage.error);
+    const maybeDicomImage = DicomImage.fromDicomObject(newDicomObject);
+    if (maybeDicomImage._tag === "err") {
+      notify.error(maybeDicomImage.error);
       return;
     }
+    const dicomImage = maybeDicomImage.value;
 
-    const imageData = ImageData_.fromDicomImage(dicomImage.value, windowingOffset);
-    if (imageData._tag === "err") {
-      notify.error(imageData.error);
-      return;
-    }
-
-    setDicomImage(dicomImage.value);
-    setViewPort(calcViewPortDefault(workspaceSize, { width: dicomImage.value.rows, height: dicomImage.value.columns }));
-    setWindowingOffset(WindowingOffset.default());
+    setDicomImage(dicomImage);
+    handleResetView(dicomImage);
   };
 
   useEffect(() => {
     if (dicomImage == null) {
       return;
     }
-    const imageData = ImageData_.fromDicomImage(dicomImage, windowingOffset);
-    if (imageData._tag === "err") {
-      notify.error(imageData.error);
+    const maybeImageData = ImageData_.fromDicomImage(dicomImage, windowingOffset);
+    if (maybeImageData._tag === "err") {
+      notify.error(maybeImageData.error);
       return;
     }
+    const imageData = maybeImageData.value;
 
-    setImageData(imageData.value);
+    setImageData(imageData);
   }, [dicomImage, notify, windowingOffset]);
 
   const handleMouseDown = (evt: Konva.KonvaEventObject<MouseEvent>): void => {
@@ -135,6 +130,7 @@ export const Browser = ({ className }: Props): React.ReactElement => {
         console.log(newViewPort);
         setViewPort(newViewPort);
       })
+      .with(__, () => undefined)
       .exhaustive();
 
     setPrevMousePosition(currMousePosition);
@@ -148,19 +144,34 @@ export const Browser = ({ className }: Props): React.ReactElement => {
     setMouseDown(false);
   };
 
+  const handleToolClick = (tool: Tool): void => {
+    match<Tool, void>(tool)
+      .with(Tool.ShowDetails, handleShowDetails)
+      .with(Tool.ResetView, () => (dicomImage != null ? handleResetView(dicomImage) : undefined))
+      .with(__, (tool) => {
+        setTool(tool);
+      })
+      .exhaustive();
+  };
+
+  const handleShowDetails = (): void => {};
+
+  const handleResetView = (dicomImage: DicomImage): void => {
+    setViewPort(calcViewPortDefault(workspaceSize, { width: dicomImage.rows, height: dicomImage.columns }));
+    setWindowingOffset(WindowingOffset.default());
+  };
+
   const [directoryHandle, setDirectoryHandle] = useState<FileSystemDirectoryHandle>();
 
   const handleFileChange = async (file: File): Promise<void> => {
-    const dicomObject = await DicomObject.fromFile(file);
-    if (dicomObject._tag === "err") {
-      notify.error(dicomObject.error);
+    const maybeDicomObject = await DicomObject.fromFile(file);
+    if (maybeDicomObject._tag === "err") {
+      notify.error(maybeDicomObject.error);
       return;
     }
-    handleDicomObjectChange(dicomObject.value);
-  };
+    const dicomObject = maybeDicomObject.value;
 
-  const handleToolClick = (tool: Tool): void => {
-    match(tool).when(Tool).exhaustive()
+    handleDicomObjectChange(dicomObject);
   };
 
   return (
@@ -172,7 +183,7 @@ export const Browser = ({ className }: Props): React.ReactElement => {
         </div>
       </div>
       <div className="flex-1 flex flex-col">
-        <ToolBar tool={tool} onToolClick={setTool} />
+        <ToolBar tool={tool} onToolClick={handleToolClick} />
         <div className="flex-1 m-3 bg-white rounded-2xl shadow-lg">
           <AutoSizer onResize={setWorkspaceSize}>
             {({ width, height }) => (

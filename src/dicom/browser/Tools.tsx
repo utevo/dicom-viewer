@@ -28,11 +28,11 @@ type ToolConfig = {
   icon: IconType;
 };
 
-type CollectionOfTools = ToolConfig[];
+type CollectionOfToolsConfig = ToolConfig[];
 
-type Config = CollectionOfTools[];
+type ToolBarConfig = CollectionOfToolsConfig[];
 
-const config: Config = [
+const toolBarConfig: ToolBarConfig = [
   [
     {
       tool: Tool.Cursor,
@@ -80,7 +80,6 @@ type Props = {
 
   className?: string;
 };
-const x = <div>{<div>{2 + 2} asd</div>}</div>;
 
 export const ToolBar = ({ tool: selectedTool, onToolClick, className }: Props): React.ReactElement => {
   return (
@@ -90,9 +89,9 @@ export const ToolBar = ({ tool: selectedTool, onToolClick, className }: Props): 
         className
       )}
     >
-      {config.map((collectionOfTools, idx) => (
+      {toolBarConfig.map((collectionOfTools, idx) => (
         <div className="px-3" key={idx}>
-          {collectionOfTools.map(({ tool, label, icon }) => {
+          {collectionOfTools.map(({ tool: tool, label, icon }) => {
             return (
               <ToolButton key={tool} onClick={() => onToolClick(tool)}>
                 <Tooltip className="transition duration-150 ease-in-out hover:scale-125" hasArrow label={label}>
