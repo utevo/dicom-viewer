@@ -5,14 +5,15 @@ import AutoSizer from "react-virtualized-auto-sizer";
 import { Tool, ToolBar } from "./Tools";
 import { Workspace } from "./Workspace";
 import { DicomImage } from "../domain/DicomImage";
-import { DicomObject } from "../domain/DicomObject";
-import { Position, ViewPort, WindowingOffset } from "./types";
+import { DicomObject, DicomObjectMetadata } from "../domain/DicomObject";
+import { Position, ViewPort, WindowingOffset } from "./common";
 import { InputDirectory } from "./InputDirectory";
 import { FilesController } from "./Files";
 import { ImageData_ } from "../domain/ImageData";
 import { useNotify } from "../../common/notify";
-import { InfoViewer } from "./Info";
+import { BrowserInfo } from "./BrowserInfo";
 import { match, __ } from "ts-pattern";
+import { DicomObjectDetails } from "./DicomObjectDetails";
 
 type Props = {
   className?: string;
@@ -21,6 +22,7 @@ type Props = {
 export const Browser = ({ className }: Props): React.ReactElement => {
   const notify = useNotify();
 
+  const [dicomObjectMetadata, setDicomObjectMetadata] = useState<DicomObjectMetadata>();
   const [dicomImage, setDicomImage] = useState<DicomImage>();
   const [imageData, setImageData] = useState<ImageData>();
   const [viewPort, setViewPort] = useState<ViewPort>(ViewPort.default());
@@ -31,6 +33,7 @@ export const Browser = ({ className }: Props): React.ReactElement => {
   const [workspaceSize, setWorkspaceSize] = useState<Size>({ width: 0, height: 0 });
 
   const handleDicomObjectChange = (newDicomObject: DicomObject) => {
+    const { pixelData, ...dicomObjectMetadata } = { ...newDicomObject };
     const maybeDicomImage = DicomImage.fromDicomObject(newDicomObject);
     if (maybeDicomImage._tag === "err") {
       notify.error(maybeDicomImage.error);
@@ -38,6 +41,7 @@ export const Browser = ({ className }: Props): React.ReactElement => {
     }
     const dicomImage = maybeDicomImage.value;
 
+    setDicomObjectMetadata(dicomObjectMetadata);
     setDicomImage(dicomImage);
     handleResetView(dicomImage);
   };
@@ -72,12 +76,6 @@ export const Browser = ({ className }: Props): React.ReactElement => {
         if (mouseDown !== true) {
           return;
         }
-
-        const newWindowingOffset: WindowingOffset = {
-          windowCenterOffset: windowingOffset.windowCenterOffset + mousePositionDiff.x,
-          windowWidthOffset: windowingOffset.windowWidthOffset + -mousePositionDiff.y,
-        };
-        setWindowingOffset(newWindowingOffset);
       })
       .with(Tool.Windowing, () => {
         if (mouseDown !== true) {
@@ -146,7 +144,7 @@ export const Browser = ({ className }: Props): React.ReactElement => {
 
   const handleToolClick = (tool: Tool): void => {
     match<Tool, void>(tool)
-      .with(Tool.ShowDetails, handleShowDetails)
+      .with(Tool.ShowDetails, () => setIsDicomObjectDetailsOpen(true))
       .with(Tool.ResetView, () => (dicomImage != null ? handleResetView(dicomImage) : undefined))
       .with(__, (tool) => {
         setTool(tool);
@@ -154,7 +152,7 @@ export const Browser = ({ className }: Props): React.ReactElement => {
       .exhaustive();
   };
 
-  const handleShowDetails = (): void => {};
+  const [isDicomObjectDetailsOpen, setIsDicomObjectDetailsOpen] = useState(false);
 
   const handleResetView = (dicomImage: DicomImage): void => {
     setViewPort(calcViewPortDefault(workspaceSize, { width: dicomImage.rows, height: dicomImage.columns }));
@@ -201,10 +199,16 @@ export const Browser = ({ className }: Props): React.ReactElement => {
           </AutoSizer>
         </div>
       </div>
-      <InfoViewer
+
+      <DicomObjectDetails
+        dicomObjectMetadata={dicomObjectMetadata}
+        isOpen={isDicomObjectDetailsOpen}
+        onClose={() => setIsDicomObjectDetailsOpen(false)}
+      />
+      <BrowserInfo
         className="fixed bottom-5 right-5"
         viewPort={viewPort}
-        voiLutModule={dicomImage?._tag === "GrayScale" ? dicomImage.voiLutModule : undefined}
+        voiLutModule={dicomImage?._tag === "grayScale" ? dicomImage.voiLutModule : undefined}
         voiLutModuleOffset={windowingOffset}
       />
     </div>

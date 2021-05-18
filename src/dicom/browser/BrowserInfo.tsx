@@ -1,5 +1,5 @@
 import { VoiLutModule } from "../domain/common";
-import { ViewPort, WindowingOffset } from "./types";
+import { ViewPort, WindowingOffset } from "./common";
 
 type Props = {
   viewPort: ViewPort;
@@ -9,7 +9,7 @@ type Props = {
   className?: string;
 };
 
-export const InfoViewer = ({ viewPort, voiLutModule, voiLutModuleOffset, className }: Props): React.ReactElement => {
+export const BrowserInfo = ({ viewPort, voiLutModule, voiLutModuleOffset, className }: Props): React.ReactElement => {
   return (
     <ul className={className}>
       <li>View Port: {JSON.stringify(viewPort)}</li>

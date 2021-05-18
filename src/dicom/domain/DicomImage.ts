@@ -16,7 +16,7 @@ import { DicomObject } from "./DicomObject";
 export type DicomImage = DicomImageGrayScale | DicomImageRgb;
 
 export type DicomImageGrayScale = {
-  _tag: "GrayScale";
+  _tag: "grayScale";
 
   photometricInterpratation: PhotometricInterpratation.Monochrome1 | PhotometricInterpratation.Monochrome2;
   voiLutModule: VoiLutModule;
@@ -27,7 +27,7 @@ export type DicomImageGrayScale = {
   pixelData: PixelDataGrayScale;
 };
 export type DicomImageRgb = {
-  _tag: "Rgb";
+  _tag: "rgb";
 
   rows: number;
   columns: number;
@@ -36,13 +36,13 @@ export type DicomImageRgb = {
 
 const DicomImageGrayScale = (props: Omit<DicomImageGrayScale, "_tag">): DicomImageGrayScale => {
   return {
-    _tag: "GrayScale",
+    _tag: "grayScale",
     ...props,
   };
 };
 const DicomImageRgb = (props: Omit<DicomImageRgb, "_tag">): DicomImageRgb => {
   return {
-    _tag: "Rgb",
+    _tag: "rgb",
     ...props,
   };
 };
@@ -179,7 +179,7 @@ export const DicomImage = {
       });
     }
 
-    return err("Supported only Gray Scale and Rgb images");
+    return err("Supported only gray scale and rgb images");
   },
 
   _fromDataForDicomImageGrayScale: ({

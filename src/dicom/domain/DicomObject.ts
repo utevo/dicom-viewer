@@ -11,6 +11,20 @@ import {
 } from "./common";
 
 export type DicomObject = {
+  modality?: string;
+  patientId?: string;
+  patientAge?: string;
+  studyInstanceUid?: string;
+  patientName?: string;
+  studyDate?: string;
+  seriesInstanceUid?: string;
+  seriesDescription?: string;
+  seriesDate?: string;
+  studyId?: string;
+  seriesNumber?: string;
+  acquisitionNumber?: string;
+  instanceNumber?: string;
+
   transferSyntax?: TransferSyntax;
 
   rows: number;
@@ -38,6 +52,8 @@ export type DicomObject = {
   rescaleSlope?: number;
 };
 
+export type DicomObjectMetadata = Omit<DicomObject, "pixelData">;
+
 export const DicomObject = {
   fromFile: async (file: File): Promise<Result<DicomObject, string>> => {
     const arrayBuffer = await file.arrayBuffer();
@@ -52,9 +68,29 @@ export const DicomObject = {
     return DicomObject._fromDataSet(dataSet);
   },
   _fromDataSet: (dataSet: DataSet): Result<DicomObject, string> => {
-    const transferSyntax = TransferSyntax_.fromTransferSyntaxUID(dataSet.string("x00020012")) as
-      | TransferSyntax
-      | undefined;
+    const modality = dataSet.string("x00080060");
+    const patientId = dataSet.string("x00100020");
+    const patientAge = dataSet.string("x00101010");
+    const studyInstanceUid = dataSet.string("x0020000D");
+    const patientName = dataSet.string("x00100010");
+    const studyDate = dataSet.string("x00080020");
+    const seriesInstanceUid = dataSet.string("x0020000E");
+    const seriesDescription = dataSet.string("x00081030");
+    const seriesDate = dataSet.string("x00080021");
+    const studyId = dataSet.string("x00200010)");
+    const seriesNumber = dataSet.string("x00200011");
+    const acquisitionNumber = dataSet.string("x00200012");
+    const instanceNumber = dataSet.string("x00200013");
+
+    const transferSyntaxValue = dataSet.string("x00020010");
+    const maybeTransferSyntax: Result<TransferSyntax | undefined, string> = match(transferSyntaxValue)
+      .with(undefined, () => ok(undefined))
+      .with(__.string, (transferSyntaxValue) => TransferSyntax_.fromTransferSyntaxUID(transferSyntaxValue))
+      .exhaustive();
+    if (maybeTransferSyntax._tag === "err") {
+      return maybeTransferSyntax;
+    }
+    const transferSyntax = maybeTransferSyntax.value;
 
     const rows = dataSet.uint16("x00280010");
     if (rows == null) return err("Dicom Object need to have rows");
@@ -136,10 +172,24 @@ export const DicomObject = {
     const voiLutSequenceElement = dataSet.elements.x00283010;
 
     if (voiLutSequenceElement != null) {
-      return err("Not supported voiLutSequence");
+      return err("Not supported Voi Lut Sequence");
     }
 
     return ok({
+      modality,
+      patientId,
+      patientAge,
+      studyInstanceUid,
+      patientName,
+      studyDate,
+      seriesInstanceUid,
+      seriesDescription,
+      seriesDate,
+      studyId,
+      seriesNumber,
+      acquisitionNumber,
+      instanceNumber,
+
       transferSyntax,
 
       rows,

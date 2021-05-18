@@ -1,36 +1,58 @@
-import {
-  Button,
-  Modal,
-  ModalBody,
-  ModalCloseButton,
-  ModalContent,
-  ModalFooter,
-  ModalHeader,
-  ModalOverlay,
-} from "@chakra-ui/react";
+import { Modal, ModalBody, ModalCloseButton, ModalContent, ModalHeader, ModalOverlay } from "@chakra-ui/react";
+import { capitalCase } from "change-case";
 import React from "react";
 
+import { DicomObjectMetadata } from "../domain/DicomObject";
+
 type Props = {
+  dicomObjectMetadata?: DicomObjectMetadata;
   isOpen: boolean;
   onClose: () => void;
 };
 
-export const DicomObjectDetails = ({ isOpen, onClose }: Props): React.ReactElement => {
+export const DicomObjectDetails = ({ dicomObjectMetadata, isOpen, onClose }: Props): React.ReactElement => {
   return (
     <Modal isOpen={isOpen} onClose={onClose}>
       <ModalOverlay />
       <ModalContent>
-        <ModalHeader>Modal Title</ModalHeader>
+        <ModalHeader>Details</ModalHeader>
         <ModalCloseButton />
-        <ModalBody>Bla bla car</ModalBody>
-
-        <ModalFooter>
-          <Button colorScheme="blue" mr={3} onClick={onClose}>
-            Close
-          </Button>
-          <Button variant="ghost">Secondary Action</Button>
-        </ModalFooter>
+        <ModalBody>
+          {dicomObjectMetadata != null ? (
+            <DicomObjectDetailsTable dicomObjectMetadata={dicomObjectMetadata} />
+          ) : (
+            <div className="mb-4 text-center font-medium">No Dicom Image selected</div>
+          )}
+        </ModalBody>
       </ModalContent>
     </Modal>
+  );
+};
+
+type DicomObjectDetailsTableProps = {
+  dicomObjectMetadata: DicomObjectMetadata;
+};
+
+const DicomObjectDetailsTable = ({ dicomObjectMetadata }: DicomObjectDetailsTableProps): React.ReactElement => {
+  console.log({ dicomObjectMetadata });
+  return (
+    <table className="table-fixed">
+      <thead>
+        <tr>
+          <th className="w-1/2">Name</th>
+          <th className="w-1/2">Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        {Object.entries(dicomObjectMetadata)
+          .filter(([_, value]) => value != null)
+          .map(([name, value]) => (
+            <tr key={name}>
+              <td className="border px-4 py-2 text-emerald-600 text-center">{capitalCase(name)}</td>
+              <td className="border px-4 py-2 text-emerald-600 text-center">{value}</td>
+            </tr>
+          ))}
+      </tbody>
+    </table>
   );
 };

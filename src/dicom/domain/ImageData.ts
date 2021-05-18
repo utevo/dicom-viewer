@@ -1,14 +1,14 @@
 import { match } from "ts-pattern";
 import { Result, ok, err } from "../../common/adt";
-import { WindowingOffset } from "../browser/types";
+import { WindowingOffset } from "../browser/common";
 import { PhotometricInterpratation, VoiLutFunction, VoiLutModule } from "./common";
 import { DicomImage, DicomImageGrayScale, DicomImageRgb } from "./DicomImage";
 
 export const ImageData_ = {
   fromDicomImage: (dicomImage: DicomImage, voiLutModuleOffset: WindowingOffset): Result<ImageData, string> =>
     match<DicomImage, Result<ImageData, string>>(dicomImage)
-      .with({ _tag: "GrayScale" }, (dicomImage) => ImageData_._fromDicomImageGrayScale(dicomImage, voiLutModuleOffset))
-      .with({ _tag: "Rgb" }, (dicomImage) => ImageData_._fromDicomImageRgb(dicomImage))
+      .with({ _tag: "grayScale" }, (dicomImage) => ImageData_._fromDicomImageGrayScale(dicomImage, voiLutModuleOffset))
+      .with({ _tag: "rgb" }, (dicomImage) => ImageData_._fromDicomImageRgb(dicomImage))
       .exhaustive(),
 
   _fromDicomImageGrayScale: (

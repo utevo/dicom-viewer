@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "@chakra-ui/react": "^1.6.0",
+    "change-case": "^4.1.2",
     "clsx": "^1.1.1",
     "dicom-parser": "^1.8.7",
     "konva": "^7.2.5",

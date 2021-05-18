@@ -1,7 +1,7 @@
 import Konva from "konva";
 import React, { useEffect, useState } from "react";
 import { Group, Image as KonvaImage, Layer, Rect, Stage } from "react-konva";
-import { ViewPort } from "./types";
+import { ViewPort } from "./common";
 
 type Props = {
   width: number;

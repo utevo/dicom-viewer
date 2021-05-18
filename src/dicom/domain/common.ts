@@ -1,4 +1,5 @@
 import { match, __ } from "ts-pattern";
+import { err, ok, Result } from "../../common/adt";
 
 export enum TransferSyntax {
   JPEG2000 = "JPEG2000",
@@ -12,15 +13,15 @@ export enum TransferSyntax {
 export const TransferSyntax_ = {
   default: (): TransferSyntax => TransferSyntax.UncompressedLE,
 
-  fromTransferSyntaxUID: (transferSyntax: string): TransferSyntax | null =>
-    match<string, TransferSyntax | null>(transferSyntax)
-      .with("1.2.840.10008.1.2", "1.2.840.10008.1.2.1", () => TransferSyntax.UncompressedLE)
-      .with("1.2.840.10008.1.2.2", () => TransferSyntax.UncompressedBE)
-      .with("1.2.840.10008.1.2.4.90", "1.2.840.10008.1.2.4.91", () => TransferSyntax.JPEG2000)
-      .with("1.2.840.10008.1.2.5", () => TransferSyntax.DecodeRLE)
-      .with("1.2.840.10008.1.2.4.57", "1.2.840.10008.1.2.4.70", () => TransferSyntax.JPEGLossless)
-      .with("1.2.840.10008.1.2.4.50", "1.2.840.10008.1.2.4.51", () => TransferSyntax.JPEGBaseline)
-      .with(__, () => null)
+  fromTransferSyntaxUID: (transferSyntax: string): Result<TransferSyntax, string> =>
+    match(transferSyntax)
+      .with("1.2.840.10008.1.2", "1.2.840.10008.1.2.1", () => ok(TransferSyntax.UncompressedLE))
+      .with("1.2.840.10008.1.2.2", () => ok(TransferSyntax.UncompressedBE))
+      .with("1.2.840.10008.1.2.4.90", "1.2.840.10008.1.2.4.91", () => ok(TransferSyntax.JPEG2000))
+      .with("1.2.840.10008.1.2.5", () => ok(TransferSyntax.DecodeRLE))
+      .with("1.2.840.10008.1.2.4.57", "1.2.840.10008.1.2.4.70", () => ok(TransferSyntax.JPEGLossless))
+      .with("1.2.840.10008.1.2.4.50", "1.2.840.10008.1.2.4.51", () => ok(TransferSyntax.JPEGBaseline))
+      .with(__, () => err("Unexpected transfer syntax"))
       .exhaustive(),
 
   toCompressionAndEndianness: (transferSyntax: TransferSyntax): [Compression, Endianness] =>
