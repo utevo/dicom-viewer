@@ -11,6 +11,7 @@ type Props = {
 };
 
 export const DicomObjectDetails = ({ dicomObjectMetadata, isOpen, onClose }: Props): React.ReactElement => {
+  console.log({ dicomObjectMetadata });
   return (
     <Modal isOpen={isOpen} onClose={onClose}>
       <ModalOverlay />
@@ -34,7 +35,6 @@ type DicomObjectDetailsTableProps = {
 };
 
 const DicomObjectDetailsTable = ({ dicomObjectMetadata }: DicomObjectDetailsTableProps): React.ReactElement => {
-  console.log({ dicomObjectMetadata });
   return (
     <table className="table-fixed">
       <thead>

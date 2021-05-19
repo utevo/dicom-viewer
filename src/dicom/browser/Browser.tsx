@@ -129,7 +129,6 @@ export const Browser = ({ className }: Props): React.ReactElement => {
           ...viewPort,
           zoom: viewPort.zoom * (1 + zoomDiff),
         };
-        console.log(newViewPort);
         setViewPort(newViewPort);
       })
       .with(__, () => undefined)

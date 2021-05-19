@@ -82,6 +82,8 @@ export const DicomObject = {
     const acquisitionNumber = dataSet.string("x00200012");
     const instanceNumber = dataSet.string("x00200013");
 
+    const pixelSpacing = dataSet.string("x00280030");
+
     const transferSyntaxValue = dataSet.string("x00020010");
     const maybeTransferSyntax: Result<TransferSyntax | undefined, string> = match(transferSyntaxValue)
       .with(undefined, () => ok(undefined))
@@ -189,6 +191,8 @@ export const DicomObject = {
       seriesNumber,
       acquisitionNumber,
       instanceNumber,
+
+      pixelSpacing,
 
       transferSyntax,
 

@@ -1,7 +1,7 @@
 import Konva from "konva";
 import { KonvaEventObject } from "konva/types/Node";
 import React, { useEffect, useState } from "react";
-import { Circle, Group, Image as KonvaImage, Layer, Line, Rect, Stage } from "react-konva";
+import { Circle, Group, Image as KonvaImage, Layer, Line, Text, Stage, Rect, Label, Tag } from "react-konva";
 import { Position, ViewPort } from "./common";
 
 type Props = {
@@ -113,49 +113,82 @@ const MeasureComponent = ({
 
   const handleDragMoveLine = (evt: KonvaEventObject<DragEvent>): void => {
     const newLinePosition = evt.target.getPosition();
-    evt.target.setPosition({ x: 0, y: 0 });
+    evt.target.setPosition(pointPosition);
 
+    // yea, konva dragging is weird
     onMeasureChange({
       pointPosition: {
-        x: pointPosition.x + newLinePosition.x,
-        y: pointPosition.y + newLinePosition.y,
+        x: newLinePosition.x,
+        y: newLinePosition.y,
       },
       otherPointPosition: {
-        x: otherPointPosition.x + newLinePosition.x,
-        y: otherPointPosition.y + newLinePosition.y,
+        x: newLinePosition.x + otherPointPosition.x - pointPosition.x,
+        y: newLinePosition.y + otherPointPosition.y - pointPosition.y,
       },
     });
   };
 
+  const [isCircleHover, setIsCirceHover] = useState<boolean>(false);
+  const [isLineHover, setIsLineHover] = useState<boolean>(false);
+  const [isOtherCircleHover, setIsOtherCirceHover] = useState<boolean>(false);
+
+  const textPosition = calcTextPosition(pointPosition, otherPointPosition);
   return (
     <Group>
+      <Label x={textPosition.x} y={textPosition.y}>
+        <Tag fill="black" pointerWidth={10} />
+        <Text text={formatDistance(distance(pointPosition, otherPointPosition), "px")} fill="white" padding={3} />
+      </Label>
+
       <Circle
-        fill="red"
-        radius={5}
         x={pointPosition.x}
         y={pointPosition.y}
         draggable
         onDragMove={handleDragMovePoint}
+        onMouseOver={() => setIsCirceHover(true)}
+        onMouseOut={() => setIsCirceHover(false)}
+        radius={isCircleHover ? 6 : 4}
+        fill="red"
       />
       <Line
-        stroke="red"
-        points={[pointPosition.x, pointPosition.y, otherPointPosition.x, otherPointPosition.y]}
+        x={pointPosition.x}
+        y={pointPosition.y}
+        points={[0, 0, otherPointPosition.x - pointPosition.x, otherPointPosition.y - pointPosition.y]}
         draggable
         onDragMove={handleDragMoveLine}
+        onMouseOver={() => setIsLineHover(true)}
+        onMouseOut={() => setIsLineHover(false)}
+        strokeWidth={isLineHover ? 4 : 3}
+        stroke="red"
       />
       <Circle
-        fill="blue"
-        radius={5}
         x={otherPointPosition.x}
         y={otherPointPosition.y}
         draggable
         onDragMove={handleDragMoveOtherPoint}
+        onMouseOver={() => setIsOtherCirceHover(true)}
+        onMouseOut={() => setIsCirceHover(false)}
+        radius={isCircleHover ? 6 : 4}
+        fill="red"
       />
     </Group>
   );
 };
 
+const distance = (pointPosition: Position, otherPointPosition: Position): number => {
+  return Math.sqrt((pointPosition.x - otherPointPosition.x) ** 2 + (pointPosition.y - otherPointPosition.y) ** 2);
+};
+
+const formatDistance = (distance: number, lengthUnit: LengthUnit): string => `${distance.toFixed(4)} ${lengthUnit}`;
+
+const calcTextPosition = (pointPosition: Position, otherPointPosition: Position): Position =>
+  pointPosition.y < otherPointPosition.y
+    ? { x: pointPosition.x - 35, y: pointPosition.y - 25 }
+    : { x: otherPointPosition.x - 35, y: otherPointPosition.y - 25 };
+
 export type Measure = {
   pointPosition: Position;
   otherPointPosition: Position;
 };
+
+export type LengthUnit = "px" | "mm";

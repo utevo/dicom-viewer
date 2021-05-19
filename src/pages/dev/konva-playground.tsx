@@ -41,9 +41,11 @@ const Tmp = (): React.ReactElement => {
   };
 
   const handleDragMoveLine = (evt: KonvaEventObject<DragEvent>): void => {
-    console.log({ position: evt.target.getPosition() });
-    console.log({ dragDistanse: evt.target.getDragDistance() });
+    const newPosition = evt.target.getPosition();
 
+    // evt.target.setPosition({ x: 0, y: 0 });
+
+    console.log({ newPosition });
   };
 
   return (
