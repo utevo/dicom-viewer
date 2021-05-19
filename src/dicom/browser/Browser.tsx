@@ -3,7 +3,7 @@ import Konva from "konva";
 import clsx from "clsx";
 import AutoSizer from "react-virtualized-auto-sizer";
 import { Tool, ToolBar } from "./Tools";
-import { Workspace } from "./Workspace";
+import { Measure, Workspace } from "./Workspace";
 import { DicomImage } from "../domain/DicomImage";
 import { DicomObject, DicomObjectMetadata } from "../domain/DicomObject";
 import { Position, ViewPort, WindowingOffset } from "./common";
@@ -31,6 +31,10 @@ export const Browser = ({ className }: Props): React.ReactElement => {
   const [mouseDown, setMouseDown] = useState<boolean>(false);
   const [prevMousePosition, setPrevMousePosition] = useState<Position>({ x: 0, y: 0 });
   const [workspaceSize, setWorkspaceSize] = useState<Size>({ width: 0, height: 0 });
+
+  const [measures, setMeasures] = useState<Measure[]>([
+    { pointPosition: { x: 10, y: 10 }, otherPointPosition: { x: 100, y: 100 } },
+  ]);
 
   const handleDicomObjectChange = (newDicomObject: DicomObject) => {
     const { pixelData, ...dicomObjectMetadata } = { ...newDicomObject };
@@ -190,6 +194,8 @@ export const Browser = ({ className }: Props): React.ReactElement => {
                 height={height}
                 imageData={imageData}
                 viewPort={viewPort}
+                measures={measures}
+                onMeasuresChange={setMeasures}
                 onMouseDown={handleMouseDown}
                 onMouseMove={handleMouseMove}
                 onMouseUp={handleMouseUp}
