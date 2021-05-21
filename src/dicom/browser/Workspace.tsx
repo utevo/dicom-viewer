@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import { Circle, Group, Image as KonvaImage, Layer, Line, Text, Stage, Rect, Label, Tag } from "react-konva";
 import { useKey } from "react-use";
 import { PixelSpacing } from "../domain/common";
+import { calcViewPortDefault } from "./Browser";
 import { Position, ViewPort } from "./common";
 
 type Props = {
@@ -13,8 +14,8 @@ type Props = {
   imageData: ImageData | undefined;
   viewPort: ViewPort;
 
-  measures: Measure[];
-  onMeasuresChange: (newMeasures: Measure[]) => void;
+  measures: Measures;
+  onMeasuresChange: (newMeasures: Measures) => void;
   measuresDraggable: boolean;
   pixelSpacing?: PixelSpacing;
 
@@ -56,36 +57,41 @@ export const Workspace = ({
         y: 0,
       };
 
-  const handleMeasureChange = (idx: number, newMeasure: Measure): void => {
-    const newMeasures = [...measures];
-    newMeasures[idx] = newMeasure;
+  const handleMeasureChange = (key: string, newMeasure: Measure): void => {
+    const newMeasures = { ...measures };
+    newMeasures[key] = newMeasure;
     onMeasuresChange(newMeasures);
   };
 
-  const handleMeasureDelete = (idx: number): void => {
-    const newMeasures = [...measures];
-    delete newMeasures[idx];
+  const handleMeasureDelete = (key: string): void => {
+    const newMeasures = { ...measures };
+    delete newMeasures[key];
     onMeasuresChange(newMeasures);
   };
 
-  const [draggingMeasureIdx, setDraggingMeasureIdx] = useState<number | undefined>();
-  const handleDragStart = (idx: number): void => {
-    setDraggingMeasureIdx(idx);
+  const [draggingMeasureKey, setDraggingMeasureKey] = useState<string | undefined>();
+  const handleDragStart = (key: string): void => {
+    setDraggingMeasureKey(key);
   };
-  const handleDragEnd = (idx: number): void => {
-    if (draggingMeasureIdx === idx) {
-      setDraggingMeasureIdx(undefined);
+  const handleDragEnd = (key: string): void => {
+    if (draggingMeasureKey === key) {
+      setDraggingMeasureKey(undefined);
     }
   };
 
   const handleKey = (evt: KeyboardEvent): void => {
     if (evt.key === "Backspace") {
-      if (draggingMeasureIdx !== undefined) {
-        handleMeasureDelete(draggingMeasureIdx);
+      if (draggingMeasureKey !== undefined) {
+        handleMeasureDelete(draggingMeasureKey);
       }
     }
   };
   useKey(() => true, handleKey);
+
+  const measureOffset = calcViewPortDefault(
+    { width, height },
+    { width: imageData?.width ?? 0, height: imageData?.height ?? 0 }
+  ).position;
 
   return imageData ? (
     <Stage
@@ -107,17 +113,17 @@ export const Workspace = ({
           scale={{ x: viewPort.zoom, y: viewPort.zoom }}
         >
           <KonvaImage image={imageBitmap} />
-
-          {measures.map((measure, idx) => (
+          {Object.entries(measures).map(([key, measure]) => (
             <MeasureComponent
-              key={idx}
+              key={key}
               measure={measure}
-              onMeasureChange={(newMeasure) => handleMeasureChange(idx, newMeasure)}
+              onMeasureChange={(newMeasure) => handleMeasureChange(key, newMeasure)}
               draggable={measuresDraggable}
-              onDragStart={() => handleDragStart(idx)}
-              onDragEnd={() => handleDragEnd(idx)}
+              onDragStart={() => handleDragStart(key)}
+              onDragEnd={() => handleDragEnd(key)}
               pixelSpacing={pixelSpacing}
               scale={1 / viewPort.zoom}
+              offset={measureOffset}
             />
           ))}
         </Group>
@@ -136,6 +142,7 @@ type MeasureComponentProps = {
   pixelSpacing?: PixelSpacing;
 
   scale?: number;
+  offset?: Position;
 };
 
 const MeasureComponent = ({
@@ -146,6 +153,7 @@ const MeasureComponent = ({
   onDragEnd,
   pixelSpacing,
   scale = 1,
+  offset = { x: 0, y: 0 },
 }: MeasureComponentProps): React.ReactElement => {
   const handleDragMovePoint = (evt: KonvaEventObject<DragEvent>): void => {
     const newPointPosition = evt.target.getPosition();
@@ -184,7 +192,7 @@ const MeasureComponent = ({
 
   const textPosition = calcTextPosition(pointPosition, otherPointPosition, scale);
   return (
-    <Group>
+    <Group offset={offset}>
       <Label x={textPosition.x} y={textPosition.y}>
         <Tag fill="black" pointerWidth={10} />
         <Text
@@ -265,5 +273,7 @@ export type Measure = {
   pointPosition: Position;
   otherPointPosition: Position;
 };
+
+export type Measures = Record<string, Measure>;
 
 export type LengthUnit = "px" | "mm";

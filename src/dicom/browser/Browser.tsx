@@ -3,7 +3,7 @@ import Konva from "konva";
 import clsx from "clsx";
 import AutoSizer from "react-virtualized-auto-sizer";
 import { Tool, ToolBar } from "./Tools";
-import { Measure, Workspace } from "./Workspace";
+import { Measure, Measures, Workspace } from "./Workspace";
 import { DicomImage } from "../domain/DicomImage";
 import { DicomObject, DicomObjectMetadata } from "../domain/DicomObject";
 import { Position, ViewPort, WindowingOffset } from "./common";
@@ -14,6 +14,8 @@ import { useNotify } from "../../common/notify";
 import { BrowserInfo } from "./BrowserInfo";
 import { match, __ } from "ts-pattern";
 import { DicomObjectDetails } from "./DicomObjectDetails";
+import { v4 as uuid4 } from "uuid";
+import produce from "immer";
 
 type Props = {
   className?: string;
@@ -32,9 +34,10 @@ export const Browser = ({ className }: Props): React.ReactElement => {
   const [prevMousePosition, setPrevMousePosition] = useState<Position>({ x: 0, y: 0 });
   const [workspaceSize, setWorkspaceSize] = useState<Size>({ width: 0, height: 0 });
 
-  const [measures, setMeasures] = useState<Measure[]>([
-    { pointPosition: { x: 10, y: 10 }, otherPointPosition: { x: 100, y: 100 } },
-  ]);
+  const [measures, setMeasures] = useState<Measures>({
+    [uuid4()]: { pointPosition: { x: 10, y: 10 }, otherPointPosition: { x: 100, y: 100 } },
+  });
+  const [addingMeasureUuid, setAddingMeasureUuid] = useState<string | undefined>();
 
   const handleDicomObjectChange = (newDicomObject: DicomObject) => {
     const { pixelData, ...dicomObjectMetadata } = { ...newDicomObject };
@@ -66,37 +69,56 @@ export const Browser = ({ className }: Props): React.ReactElement => {
 
   const handleMouseDown = (evt: Konva.KonvaEventObject<MouseEvent>): void => {
     setMouseDown(true);
+    const currMousePosition = { x: evt.evt.offsetX, y: evt.evt.offsetY };
+
+    match(tool)
+      .with(Tool.AddMeasure, () => {
+        const newMeasure: Measure = {
+          pointPosition: currMousePosition,
+          otherPointPosition: currMousePosition,
+        };
+
+        const newUuid = uuid4();
+        const newMeasures = { ...measures, [newUuid]: newMeasure };
+
+        setAddingMeasureUuid(newUuid);
+        setMeasures(newMeasures);
+      })
+      .with(__, () => undefined)
+      .exhaustive();
   };
 
   const handleMouseMove = (evt: Konva.KonvaEventObject<MouseEvent>): void => {
-    const currMousePosition = { x: evt.evt.clientX, y: evt.evt.clientY };
+    const currMousePosition = { x: evt.evt.offsetX, y: evt.evt.offsetY };
+    console.log({ evt });
+    console.log({ x: currMousePosition.x, y: currMousePosition.y });
     const mousePositionDiff = {
       x: currMousePosition.x - prevMousePosition.x,
       y: currMousePosition.y - prevMousePosition.y,
     };
 
-    match(tool)
-      .with(Tool.Cursor, () => {
-        if (mouseDown !== true) {
-          return;
-        }
-      })
-      .with(Tool.Windowing, () => {
-        if (mouseDown !== true) {
-          return;
-        }
-
+    match([tool, mouseDown])
+      .with([Tool.Cursor, true], () => undefined)
+      .with([Tool.Windowing, true], () => {
         const newWindowingOffset: WindowingOffset = {
           windowCenterOffset: windowingOffset.windowCenterOffset + mousePositionDiff.x,
           windowWidthOffset: windowingOffset.windowWidthOffset + -mousePositionDiff.y,
         };
         setWindowingOffset(newWindowingOffset);
       })
-      .with(Tool.Pan, () => {
-        if (mouseDown !== true) {
+      .with([Tool.AddMeasure, true], () => {
+        if (addingMeasureUuid === undefined) {
           return;
         }
 
+        const newMeasures = produce(measures, (newMeasures) => {
+          newMeasures[addingMeasureUuid].otherPointPosition = currMousePosition;
+          return newMeasures;
+        });
+
+        setMeasures(newMeasures);
+      })
+      .with([Tool.Pan, true], () => {
         const newViewPort = {
           ...viewPort,
           position: {
@@ -106,11 +128,7 @@ export const Browser = ({ className }: Props): React.ReactElement => {
         };
         setViewPort(newViewPort);
       })
-      .with(Tool.Rotate, () => {
-        if (mouseDown !== true) {
-          return;
-        }
-
+      .with([Tool.Rotate, true], () => {
         const rotationDiff = -mousePositionDiff.y / 4;
         const newViewPort: ViewPort = {
           ...viewPort,
@@ -118,11 +136,7 @@ export const Browser = ({ className }: Props): React.ReactElement => {
         };
         setViewPort(newViewPort);
       })
-      .with(Tool.Zoom, () => {
-        if (mouseDown !== true) {
-          return;
-        }
-
+      .with([Tool.Zoom, true], () => {
         const zoomDiff = -(currMousePosition.y - prevMousePosition.y) / 600;
         console;
         const newViewPort: ViewPort = {
@@ -155,7 +169,7 @@ export const Browser = ({ className }: Props): React.ReactElement => {
       .exhaustive();
   };
 
-  const handleMeasuresChange = (newMeasures: Measure[]): void => {
+  const handleMeasuresChange = (newMeasures: Measures): void => {
     if (tool === Tool.Cursor) {
       setMeasures(newMeasures);
     }
@@ -165,6 +179,7 @@ export const Browser = ({ className }: Props): React.ReactElement => {
 
   const handleResetView = (dicomImage: DicomImage): void => {
     setViewPort(calcViewPortDefault(workspaceSize, { width: dicomImage.rows, height: dicomImage.columns }));
+    setMeasures({});
     setWindowingOffset(WindowingOffset.default());
   };
 
@@ -233,7 +248,7 @@ type Size = {
   height: number;
 };
 
-const calcViewPortDefault = (workspaceSize: Size, imageSize: Size): ViewPort => {
+export const calcViewPortDefault = (workspaceSize: Size, imageSize: Size): ViewPort => {
   return {
     position: { x: workspaceSize.width / 2 - imageSize.width / 2, y: workspaceSize.height / 2 - imageSize.height / 2 },
     rotation: 0,

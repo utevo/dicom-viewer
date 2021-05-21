@@ -5,6 +5,7 @@ import {
   RiDragMove2Fill,
   RiInformationLine,
   RiRestartLine,
+  RiRulerLine,
   RiWindow2Line,
   RiZoomInLine,
 } from "react-icons/ri";
@@ -18,6 +19,7 @@ export enum Tool {
   Rotate = "ROTATE",
   Windowing = "WINDOWING",
   Zoom = "ZOOM",
+  AddMeasure = " ADD_MEASURE",
   ShowDetails = "SHOW_DETAILS",
   ResetView = "RESET_VIEW",
 }
@@ -43,6 +45,11 @@ const toolBarConfig: ToolBarConfig = [
       tool: Tool.Windowing,
       label: "Windowing",
       icon: RiWindow2Line,
+    },
+    {
+      tool: Tool.AddMeasure,
+      label: "Measure",
+      icon: RiRulerLine,
     },
     {
       tool: Tool.Pan,
