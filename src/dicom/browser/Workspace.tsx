@@ -2,6 +2,7 @@ import Konva from "konva";
 import { KonvaEventObject } from "konva/types/Node";
 import React, { useEffect, useState } from "react";
 import { Circle, Group, Image as KonvaImage, Layer, Line, Text, Stage, Rect, Label, Tag } from "react-konva";
+import { useKey } from "react-use";
 import { PixelSpacing } from "../domain/common";
 import { Position, ViewPort } from "./common";
 
@@ -61,6 +62,31 @@ export const Workspace = ({
     onMeasuresChange(newMeasures);
   };
 
+  const handleMeasureDelete = (idx: number): void => {
+    const newMeasures = [...measures];
+    delete newMeasures[idx];
+    onMeasuresChange(newMeasures);
+  };
+
+  const [draggingMeasureIdx, setDraggingMeasureIdx] = useState<number | undefined>();
+  const handleDragStart = (idx: number): void => {
+    setDraggingMeasureIdx(idx);
+  };
+  const handleDragEnd = (idx: number): void => {
+    if (draggingMeasureIdx === idx) {
+      setDraggingMeasureIdx(undefined);
+    }
+  };
+
+  const handleKey = (evt: KeyboardEvent): void => {
+    if (evt.key === "Backspace") {
+      if (draggingMeasureIdx !== undefined) {
+        handleMeasureDelete(draggingMeasureIdx);
+      }
+    }
+  };
+  useKey(() => true, handleKey);
+
   return imageData ? (
     <Stage
       width={width}
@@ -88,6 +114,8 @@ export const Workspace = ({
               measure={measure}
               onMeasureChange={(newMeasure) => handleMeasureChange(idx, newMeasure)}
               draggable={measuresDraggable}
+              onDragStart={() => handleDragStart(idx)}
+              onDragEnd={() => handleDragEnd(idx)}
               pixelSpacing={pixelSpacing}
               scale={1 / viewPort.zoom}
             />
@@ -102,6 +130,8 @@ type MeasureComponentProps = {
   measure: Measure;
   onMeasureChange: (newMeasure: Measure) => void;
   draggable: boolean;
+  onDragStart?: () => void;
+  onDragEnd?: () => void;
 
   pixelSpacing?: PixelSpacing;
 
@@ -112,6 +142,8 @@ const MeasureComponent = ({
   measure: { pointPosition, otherPointPosition },
   onMeasureChange,
   draggable,
+  onDragStart,
+  onDragEnd,
   pixelSpacing,
   scale = 1,
 }: MeasureComponentProps): React.ReactElement => {
@@ -172,6 +204,8 @@ const MeasureComponent = ({
         {...(draggable && {
           draggable: true,
           onDragMove: handleDragMovePoint,
+          onDragStart,
+          onDragEnd,
           onMouseOver: () => setIsCirceHover(true),
           onMouseOut: () => setIsCirceHover(false),
         })}
@@ -185,6 +219,8 @@ const MeasureComponent = ({
         {...(draggable && {
           draggable: true,
           onDragMove: handleDragMoveLine,
+          onDragStart,
+          onDragEnd,
           onMouseOver: () => setIsLineHover(true),
           onMouseOut: () => setIsLineHover(false),
         })}
@@ -197,6 +233,8 @@ const MeasureComponent = ({
         {...(draggable && {
           draggable: true,
           onDragMove: handleDragMoveOtherPoint,
+          onDragStart,
+          onDragEnd,
           onMouseOver: () => setIsOtherCirceHover(true),
           onMouseOut: () => setIsOtherCirceHover(false),
         })}
