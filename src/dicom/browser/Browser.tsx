@@ -155,6 +155,12 @@ export const Browser = ({ className }: Props): React.ReactElement => {
       .exhaustive();
   };
 
+  const handleMeasuresChange = (newMeasures: Measure[]): void => {
+    if (tool === Tool.Cursor) {
+      setMeasures(newMeasures);
+    }
+  };
+
   const [isDicomObjectDetailsOpen, setIsDicomObjectDetailsOpen] = useState(false);
 
   const handleResetView = (dicomImage: DicomImage): void => {
@@ -195,7 +201,8 @@ export const Browser = ({ className }: Props): React.ReactElement => {
                 viewPort={viewPort}
                 pixelSpacing={dicomImage?.pixelSpacing}
                 measures={measures}
-                onMeasuresChange={setMeasures}
+                measuresDraggable={tool === Tool.Cursor}
+                onMeasuresChange={handleMeasuresChange}
                 onMouseDown={handleMouseDown}
                 onMouseMove={handleMouseMove}
                 onMouseUp={handleMouseUp}

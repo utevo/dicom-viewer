@@ -12,9 +12,10 @@ type Props = {
   imageData: ImageData | undefined;
   viewPort: ViewPort;
 
-  pixelSpacing?: PixelSpacing;
   measures: Measure[];
   onMeasuresChange: (newMeasures: Measure[]) => void;
+  measuresDraggable: boolean;
+  pixelSpacing?: PixelSpacing;
 
   onMouseDown: (evt: Konva.KonvaEventObject<MouseEvent>) => void;
   onMouseMove: (evt: Konva.KonvaEventObject<MouseEvent>) => void;
@@ -27,9 +28,12 @@ export const Workspace = ({
   height,
   imageData,
   viewPort,
-  pixelSpacing,
+
   measures,
   onMeasuresChange,
+  measuresDraggable = false,
+  pixelSpacing,
+
   onMouseDown,
   onMouseMove,
   onMouseUp,
@@ -83,6 +87,7 @@ export const Workspace = ({
               key={idx}
               measure={measure}
               onMeasureChange={(newMeasure) => handleMeasureChange(idx, newMeasure)}
+              draggable={measuresDraggable}
               pixelSpacing={pixelSpacing}
               scale={1 / viewPort.zoom}
             />
@@ -96,6 +101,7 @@ export const Workspace = ({
 type MeasureComponentProps = {
   measure: Measure;
   onMeasureChange: (newMeasure: Measure) => void;
+  draggable: boolean;
 
   pixelSpacing?: PixelSpacing;
 
@@ -105,6 +111,7 @@ type MeasureComponentProps = {
 const MeasureComponent = ({
   measure: { pointPosition, otherPointPosition },
   onMeasureChange,
+  draggable,
   pixelSpacing,
   scale = 1,
 }: MeasureComponentProps): React.ReactElement => {
@@ -162,10 +169,12 @@ const MeasureComponent = ({
       <Circle
         x={pointPosition.x}
         y={pointPosition.y}
-        draggable
-        onDragMove={handleDragMovePoint}
-        onMouseOver={() => setIsCirceHover(true)}
-        onMouseOut={() => setIsCirceHover(false)}
+        {...(draggable && {
+          draggable: true,
+          onDragMove: handleDragMovePoint,
+          onMouseOver: () => setIsCirceHover(true),
+          onMouseOut: () => setIsCirceHover(false),
+        })}
         radius={(isCircleHover ? 6 : 4) * scale}
         fill="red"
       />
@@ -173,20 +182,24 @@ const MeasureComponent = ({
         x={pointPosition.x}
         y={pointPosition.y}
         points={[0, 0, otherPointPosition.x - pointPosition.x, otherPointPosition.y - pointPosition.y]}
-        draggable
-        onDragMove={handleDragMoveLine}
-        onMouseOver={() => setIsLineHover(true)}
-        onMouseOut={() => setIsLineHover(false)}
+        {...(draggable && {
+          draggable: true,
+          onDragMove: handleDragMoveLine,
+          onMouseOver: () => setIsLineHover(true),
+          onMouseOut: () => setIsLineHover(false),
+        })}
         strokeWidth={(isLineHover ? 4 : 3) * scale}
         stroke="red"
       />
       <Circle
         x={otherPointPosition.x}
         y={otherPointPosition.y}
-        draggable
-        onDragMove={handleDragMoveOtherPoint}
-        onMouseOver={() => setIsOtherCirceHover(true)}
-        onMouseOut={() => setIsOtherCirceHover(false)}
+        {...(draggable && {
+          draggable: true,
+          onDragMove: handleDragMoveOtherPoint,
+          onMouseOver: () => setIsOtherCirceHover(true),
+          onMouseOut: () => setIsOtherCirceHover(false),
+        })}
         radius={(isOtherCircleHover ? 6 : 4) * scale}
         fill="red"
       />
