@@ -4,6 +4,7 @@ import { Result, ok, err } from "../../common/adt";
 import {
   PhotometricInterpratation,
   PixelRepresentation,
+  PixelSpacing,
   PlanarConfiguration,
   TransferSyntax,
   TransferSyntax_,
@@ -24,6 +25,8 @@ export type DicomObject = {
   seriesNumber?: string;
   acquisitionNumber?: string;
   instanceNumber?: string;
+
+  pixelSpacing?: string;
 
   transferSyntax?: TransferSyntax;
 
@@ -84,15 +87,15 @@ export const DicomObject = {
 
     const pixelSpacing = dataSet.string("x00280030");
 
-    const transferSyntaxValue = dataSet.string("x00020010");
-    const maybeTransferSyntax: Result<TransferSyntax | undefined, string> = match(transferSyntaxValue)
+    const rawTransferSyntax = dataSet.string("x00020010");
+    const transferSyntaxResult: Result<TransferSyntax | undefined, string> = match(rawTransferSyntax)
       .with(undefined, () => ok(undefined))
       .with(__.string, (transferSyntaxValue) => TransferSyntax_.fromTransferSyntaxUID(transferSyntaxValue))
       .exhaustive();
-    if (maybeTransferSyntax._tag === "err") {
-      return maybeTransferSyntax;
+    if (transferSyntaxResult._tag === "err") {
+      return transferSyntaxResult;
     }
-    const transferSyntax = maybeTransferSyntax.value;
+    const transferSyntax = transferSyntaxResult.value;
 
     const rows = dataSet.uint16("x00280010");
     if (rows == null) return err("Dicom Object need to have rows");
@@ -111,16 +114,16 @@ export const DicomObject = {
 
     const photometricInterpratation = photometricInterpratationValue as PhotometricInterpratation; // ToDo: Need validation
 
-    const planarConfigurationValue = dataSet.uint16("x00280006") ?? 0;
-    const maybePlanarConfiguration = match(planarConfigurationValue)
+    const rawPlanarConfiguration = dataSet.uint16("x00280006") ?? 0;
+    const planarConfigurationResult = match(rawPlanarConfiguration)
       .with(0, () => ok(PlanarConfiguration.Interlaced))
       .with(1, () => ok(PlanarConfiguration.Separated))
       .with(__, () => err("Dicom Image have incorrect Planar Configuration"))
       .exhaustive();
-    if (maybePlanarConfiguration._tag === "err") {
-      return maybePlanarConfiguration;
+    if (planarConfigurationResult._tag === "err") {
+      return planarConfigurationResult;
     }
-    const planarConfiguration = maybePlanarConfiguration.value;
+    const planarConfiguration = planarConfigurationResult.value;
 
     const bitsAllocated = dataSet.uint16("x00280100");
     if (bitsAllocated == null) return err("Dicom Image need to have Bits Allocated");
@@ -131,42 +134,41 @@ export const DicomObject = {
     const highBit = dataSet.uint16("x00280102");
     if (highBit == null) return err("Dicom Image need to have High Bit");
 
-    const pixelRepresentationValue = dataSet.uint16("x00280103");
-    if (pixelRepresentationValue == null) return err("Dicom Object need to have Pixel Representation value");
-
-    const maybePixelRepresentation = match<number, Result<PixelRepresentation, string>>(pixelRepresentationValue)
+    const rawPixelRepresentation = dataSet.uint16("x00280103");
+    if (rawPixelRepresentation == null) return err("Dicom Object need to have Pixel Representation value");
+    const pixelRepresentationResult = match<number, Result<PixelRepresentation, string>>(rawPixelRepresentation)
       .with(0, () => ok(PixelRepresentation.Unsigned))
       .with(1, () => ok(PixelRepresentation.Signed))
       .with(__, () => err("Unexpected value of Pixel Representation"))
       .exhaustive();
-    if (maybePixelRepresentation._tag === "err") {
-      return maybePixelRepresentation;
+    if (pixelRepresentationResult._tag === "err") {
+      return pixelRepresentationResult;
     }
-    const pixelRepresentation = maybePixelRepresentation.value;
+    const pixelRepresentation = pixelRepresentationResult.value;
 
     const pixelDataElement = dataSet.elements.x7fe00010;
-    const pixelDataVrValue = pixelDataElement.vr ?? "OB";
+    const rawPixelDataVr = pixelDataElement.vr ?? "OB";
 
-    const maybePixelDataVr = match<string, Result<"OB" | "OW", string>>(pixelDataVrValue)
+    const pixelDataVrResult = match<string, Result<"OB" | "OW", string>>(rawPixelDataVr)
       .with("OB", () => ok("OB"))
       .with("OW", () => ok("OW"))
       .with(__, () => err("Unexpected Pixel Data VR"))
       .exhaustive();
-    if (maybePixelDataVr._tag === "err") {
-      return maybePixelDataVr;
+    if (pixelDataVrResult._tag === "err") {
+      return pixelDataVrResult;
     }
-    const pixelDataVr = maybePixelDataVr.value;
+    const pixelDataVr = pixelDataVrResult.value;
 
     const pixelData = new Uint8Array(pixelDataElement.length);
     for (let idx = 0; idx < pixelDataElement.length; idx += 1) {
       pixelData[idx] = dataSet.byteArray[pixelDataElement.dataOffset + idx];
     }
 
-    const windowCenter = dataSet.floatString("x00281050") as number | undefined;
-    const windowWidth = dataSet.floatString("x00281051") as number | undefined;
+    const windowCenter = dataSet.floatString("x00281050");
+    const windowWidth = dataSet.floatString("x00281051");
 
-    const rescaleIntercept = dataSet.floatString("x00281052") as number | undefined;
-    const rescaleSlope = dataSet.floatString("x00281053") as number | undefined;
+    const rescaleIntercept = dataSet.floatString("x00281052");
+    const rescaleSlope = dataSet.floatString("x00281053");
 
     const voiLutFunction =
       dataSet.string("x00281056") != null ? (dataSet.string("x00281056") as VoiLutFunction) : undefined; // ToDo: Need validation

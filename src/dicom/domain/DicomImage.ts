@@ -4,6 +4,7 @@ import {
   Compression,
   PhotometricInterpratation,
   PixelRepresentation,
+  PixelSpacing,
   PlanarConfiguration,
   TransferSyntax_,
   VoiLutFunction,
@@ -22,12 +23,16 @@ export type DicomImageGrayScale = {
   voiLutModule: VoiLutModule;
   rescale: Rescale;
 
+  pixelSpacing?: PixelSpacing;
+
   rows: number;
   columns: number;
   pixelData: PixelDataGrayScale;
 };
 export type DicomImageRgb = {
   _tag: "rgb";
+
+  pixelSpacing?: PixelSpacing;
 
   rows: number;
   columns: number;
@@ -51,6 +56,8 @@ type DataFofDicomImageGrayScale = {
   photometricInterpratation: PhotometricInterpratation.Monochrome1 | PhotometricInterpratation.Monochrome2;
   pixelRepresentation: PixelRepresentation;
 
+  pixelSpacing?: string;
+
   bitsAllocated: number;
   bitsStored: number;
   highBit: number;
@@ -71,6 +78,8 @@ type DataFofDicomImageGrayScale = {
 
 type DataForDicomImageRgb = {
   planarConfiguration?: PlanarConfiguration;
+
+  pixelSpacing?: string;
 
   bitsAllocated: number;
   bitsStored: number;
@@ -106,6 +115,8 @@ export const DicomImage = {
         rows,
         columns,
 
+        pixelSpacing,
+
         photometricInterpratation,
         pixelRepresentation,
 
@@ -126,6 +137,8 @@ export const DicomImage = {
       return DicomImage._fromDataForDicomImageGrayScale({
         rows,
         columns,
+
+        pixelSpacing,
 
         photometricInterpratation,
         pixelRepresentation,
@@ -150,6 +163,8 @@ export const DicomImage = {
       const {
         planarConfiguration,
 
+        pixelSpacing,
+
         bitsAllocated,
         bitsStored,
         highBit,
@@ -164,6 +179,8 @@ export const DicomImage = {
       } = dicomObject;
       return DicomImage._fromDataForDicomImageRgb({
         planarConfiguration,
+
+        pixelSpacing,
 
         bitsAllocated,
         bitsStored,
@@ -185,6 +202,7 @@ export const DicomImage = {
   _fromDataForDicomImageGrayScale: ({
     rows,
     columns,
+    pixelSpacing: rawPixelSpacing,
     photometricInterpratation,
     pixelRepresentation,
     bitsAllocated,
@@ -208,6 +226,12 @@ export const DicomImage = {
       return err("Not supported photometricInterpratation");
     }
 
+    const pixelSpacingResult = rawPixelSpacing == null ? ok(undefined) : PixelSpacing.fromString(rawPixelSpacing);
+    if (pixelSpacingResult._tag === "err") {
+      return pixelSpacingResult;
+    }
+    const pixelSpacing = pixelSpacingResult.value;
+
     const voiLutModule: VoiLutModule = {
       voiLutFunction: voiLutFunction ?? VoiLutFunction_.default(),
       window: {
@@ -224,7 +248,7 @@ export const DicomImage = {
       intercept: rescaleIntercept ?? Rescale.default().intercept,
     };
 
-    const maybeImagePixelData = match<[PixelRepresentation, number], Result<PixelDataGrayScale, string>>([
+    const imagePixelDataResult = match<[PixelRepresentation, number], Result<PixelDataGrayScale, string>>([
       pixelRepresentation,
       bitsAllocated,
     ])
@@ -236,14 +260,16 @@ export const DicomImage = {
       .with([PixelRepresentation.Signed, 32], () => ok(new Int32Array(pixelData.buffer)))
       .with([__, __], () => err("Not supported Bits Allocated"))
       .exhaustive();
-    if (maybeImagePixelData._tag === "err") {
-      return err(maybeImagePixelData.error);
+    if (imagePixelDataResult._tag === "err") {
+      return err(imagePixelDataResult.error);
     }
-    const imagePixelData = maybeImagePixelData.value;
+    const imagePixelData = imagePixelDataResult.value;
 
     return ok(
       DicomImage.GrayScale({
         photometricInterpratation,
+
+        pixelSpacing,
 
         voiLutModule,
         rescale,
@@ -258,6 +284,7 @@ export const DicomImage = {
   _fromDataForDicomImageRgb: ({
     rows,
     columns,
+    pixelSpacing: rawPixelSpacing,
     planarConfiguration,
     bitsAllocated,
     bitsStored,
@@ -276,6 +303,12 @@ export const DicomImage = {
       return err("Not supported pixelRepresentation");
     }
 
+    const pixelSpacingResult = rawPixelSpacing == null ? ok(undefined) : PixelSpacing.fromString(rawPixelSpacing);
+    if (pixelSpacingResult._tag === "err") {
+      return pixelSpacingResult;
+    }
+    const pixelSpacing = pixelSpacingResult.value;
+
     const pixelsCount = rows * columns;
     const rgbPixelData = new Uint32Array(pixelsCount);
     for (let idx = 0; idx < pixelsCount; idx += 1) {
@@ -288,6 +321,8 @@ export const DicomImage = {
 
     return ok(
       DicomImage.Rgb({
+        pixelSpacing,
+
         rows,
         columns,
         pixelData: rgbPixelData,

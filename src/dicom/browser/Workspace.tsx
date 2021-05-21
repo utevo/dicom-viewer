@@ -2,6 +2,7 @@ import Konva from "konva";
 import { KonvaEventObject } from "konva/types/Node";
 import React, { useEffect, useState } from "react";
 import { Circle, Group, Image as KonvaImage, Layer, Line, Text, Stage, Rect, Label, Tag } from "react-konva";
+import { PixelSpacing } from "../domain/common";
 import { Position, ViewPort } from "./common";
 
 type Props = {
@@ -11,6 +12,7 @@ type Props = {
   imageData: ImageData | undefined;
   viewPort: ViewPort;
 
+  pixelSpacing?: PixelSpacing;
   measures: Measure[];
   onMeasuresChange: (newMeasures: Measure[]) => void;
 
@@ -25,6 +27,7 @@ export const Workspace = ({
   height,
   imageData,
   viewPort,
+  pixelSpacing,
   measures,
   onMeasuresChange,
   onMouseDown,
@@ -80,6 +83,8 @@ export const Workspace = ({
               key={idx}
               measure={measure}
               onMeasureChange={(newMeasure) => handleMeasureChange(idx, newMeasure)}
+              pixelSpacing={pixelSpacing}
+              scale={1 / viewPort.zoom}
             />
           ))}
         </Group>
@@ -91,11 +96,17 @@ export const Workspace = ({
 type MeasureComponentProps = {
   measure: Measure;
   onMeasureChange: (newMeasure: Measure) => void;
+
+  pixelSpacing?: PixelSpacing;
+
+  scale?: number;
 };
 
 const MeasureComponent = ({
   measure: { pointPosition, otherPointPosition },
   onMeasureChange,
+  pixelSpacing,
+  scale = 1,
 }: MeasureComponentProps): React.ReactElement => {
   const handleDragMovePoint = (evt: KonvaEventObject<DragEvent>): void => {
     const newPointPosition = evt.target.getPosition();
@@ -132,12 +143,20 @@ const MeasureComponent = ({
   const [isLineHover, setIsLineHover] = useState<boolean>(false);
   const [isOtherCircleHover, setIsOtherCirceHover] = useState<boolean>(false);
 
-  const textPosition = calcTextPosition(pointPosition, otherPointPosition);
+  const textPosition = calcTextPosition(pointPosition, otherPointPosition, scale);
   return (
     <Group>
       <Label x={textPosition.x} y={textPosition.y}>
         <Tag fill="black" pointerWidth={10} />
-        <Text text={formatDistance(distance(pointPosition, otherPointPosition), "px")} fill="white" padding={3} />
+        <Text
+          text={formatDistance(
+            distance(pointPosition, otherPointPosition, pixelSpacing),
+            pixelSpacing != null ? "mm" : "px"
+          )}
+          fill="white"
+          fontSize={17 * scale}
+          padding={3 * scale}
+        />
       </Label>
 
       <Circle
@@ -147,7 +166,7 @@ const MeasureComponent = ({
         onDragMove={handleDragMovePoint}
         onMouseOver={() => setIsCirceHover(true)}
         onMouseOut={() => setIsCirceHover(false)}
-        radius={isCircleHover ? 6 : 4}
+        radius={(isCircleHover ? 6 : 4) * scale}
         fill="red"
       />
       <Line
@@ -158,7 +177,7 @@ const MeasureComponent = ({
         onDragMove={handleDragMoveLine}
         onMouseOver={() => setIsLineHover(true)}
         onMouseOut={() => setIsLineHover(false)}
-        strokeWidth={isLineHover ? 4 : 3}
+        strokeWidth={(isLineHover ? 4 : 3) * scale}
         stroke="red"
       />
       <Circle
@@ -167,24 +186,29 @@ const MeasureComponent = ({
         draggable
         onDragMove={handleDragMoveOtherPoint}
         onMouseOver={() => setIsOtherCirceHover(true)}
-        onMouseOut={() => setIsCirceHover(false)}
-        radius={isCircleHover ? 6 : 4}
+        onMouseOut={() => setIsOtherCirceHover(false)}
+        radius={(isOtherCircleHover ? 6 : 4) * scale}
         fill="red"
       />
     </Group>
   );
 };
 
-const distance = (pointPosition: Position, otherPointPosition: Position): number => {
-  return Math.sqrt((pointPosition.x - otherPointPosition.x) ** 2 + (pointPosition.y - otherPointPosition.y) ** 2);
+const distance = (pointPosition: Position, otherPointPosition: Position, pixelSpacing?: PixelSpacing): number => {
+  const rowScaling = pixelSpacing != null ? pixelSpacing.row : 1;
+  const rowLength = (pointPosition.x - otherPointPosition.x) * rowScaling;
+
+  const columnScaling = pixelSpacing != null ? pixelSpacing.column : 1;
+  const columnLength = (pointPosition.y - otherPointPosition.y) * columnScaling;
+  return Math.sqrt(rowLength ** 2 + columnLength ** 2);
 };
 
 const formatDistance = (distance: number, lengthUnit: LengthUnit): string => `${distance.toFixed(4)} ${lengthUnit}`;
 
-const calcTextPosition = (pointPosition: Position, otherPointPosition: Position): Position =>
+const calcTextPosition = (pointPosition: Position, otherPointPosition: Position, scale: number): Position =>
   pointPosition.y < otherPointPosition.y
-    ? { x: pointPosition.x - 35, y: pointPosition.y - 25 }
-    : { x: otherPointPosition.x - 35, y: otherPointPosition.y - 25 };
+    ? { x: pointPosition.x - 48 * scale, y: pointPosition.y - 33 * scale }
+    : { x: otherPointPosition.x - 48 * scale, y: otherPointPosition.y - 33 * scale };
 
 export type Measure = {
   pointPosition: Position;

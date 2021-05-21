@@ -1,3 +1,4 @@
+import { TableColumnHeaderProps } from "@chakra-ui/react";
 import { match, __ } from "ts-pattern";
 import { err, ok, Result } from "../../common/adt";
 
@@ -97,4 +98,26 @@ export const VoiLutWindow = {
     center: 1024,
     width: 4096,
   }),
+};
+
+export type PixelSpacing = {
+  readonly row: number;
+  readonly column: number;
+};
+export const PixelSpacing = {
+  fromString: (str: string): Result<PixelSpacing, string> => {
+    const rawNumbers = str.split("\\");
+    if (rawNumbers.length != 2) {
+      return err("Invalid value of Pixel Spacing");
+    }
+
+    try {
+      return ok({
+        row: Number.parseFloat(rawNumbers[0]),
+        column: Number.parseFloat(rawNumbers[1]),
+      });
+    } catch (e) {
+      return err("Invalid value of Pixel Spacing");
+    }
+  },
 };

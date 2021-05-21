@@ -19,11 +19,11 @@ export const ImageData_ = {
       return err(`Not supported Photometric Interpratation (${dicomImage.photometricInterpratation})`);
     }
 
-    const maybeLut = Lut.fromVoiLutModuleAndConfig(dicomImage.voiLutModule, voiLutModuleOffset);
-    if (maybeLut._tag === "err") {
-      return maybeLut;
+    const lutResult = Lut.fromVoiLutModuleAndConfig(dicomImage.voiLutModule, voiLutModuleOffset);
+    if (lutResult._tag === "err") {
+      return lutResult;
     }
-    const lut = maybeLut.value;
+    const lut = lutResult.value;
 
     const imageData = new ImageData(dicomImage.columns, dicomImage.rows);
     for (let idx = 0; idx < dicomImage.pixelData.length; idx += 1) {

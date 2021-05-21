@@ -38,12 +38,12 @@ export const Browser = ({ className }: Props): React.ReactElement => {
 
   const handleDicomObjectChange = (newDicomObject: DicomObject) => {
     const { pixelData, ...dicomObjectMetadata } = { ...newDicomObject };
-    const maybeDicomImage = DicomImage.fromDicomObject(newDicomObject);
-    if (maybeDicomImage._tag === "err") {
-      notify.error(maybeDicomImage.error);
+    const dicomImageResult = DicomImage.fromDicomObject(newDicomObject);
+    if (dicomImageResult._tag === "err") {
+      notify.error(dicomImageResult.error);
       return;
     }
-    const dicomImage = maybeDicomImage.value;
+    const dicomImage = dicomImageResult.value;
 
     setDicomObjectMetadata(dicomObjectMetadata);
     setDicomImage(dicomImage);
@@ -54,12 +54,12 @@ export const Browser = ({ className }: Props): React.ReactElement => {
     if (dicomImage == null) {
       return;
     }
-    const maybeImageData = ImageData_.fromDicomImage(dicomImage, windowingOffset);
-    if (maybeImageData._tag === "err") {
-      notify.error(maybeImageData.error);
+    const imageDataResult = ImageData_.fromDicomImage(dicomImage, windowingOffset);
+    if (imageDataResult._tag === "err") {
+      notify.error(imageDataResult.error);
       return;
     }
-    const imageData = maybeImageData.value;
+    const imageData = imageDataResult.value;
 
     setImageData(imageData);
   }, [dicomImage, notify, windowingOffset]);
@@ -165,12 +165,12 @@ export const Browser = ({ className }: Props): React.ReactElement => {
   const [directoryHandle, setDirectoryHandle] = useState<FileSystemDirectoryHandle>();
 
   const handleFileChange = async (file: File): Promise<void> => {
-    const maybeDicomObject = await DicomObject.fromFile(file);
-    if (maybeDicomObject._tag === "err") {
-      notify.error(maybeDicomObject.error);
+    const dicomObjectResult = await DicomObject.fromFile(file);
+    if (dicomObjectResult._tag === "err") {
+      notify.error(dicomObjectResult.error);
       return;
     }
-    const dicomObject = maybeDicomObject.value;
+    const dicomObject = dicomObjectResult.value;
 
     handleDicomObjectChange(dicomObject);
   };
@@ -193,6 +193,7 @@ export const Browser = ({ className }: Props): React.ReactElement => {
                 height={height}
                 imageData={imageData}
                 viewPort={viewPort}
+                pixelSpacing={dicomImage?.pixelSpacing}
                 measures={measures}
                 onMeasuresChange={setMeasures}
                 onMouseDown={handleMouseDown}

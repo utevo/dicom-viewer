@@ -11,7 +11,6 @@ type Props = {
 };
 
 export const DicomObjectDetails = ({ dicomObjectMetadata, isOpen, onClose }: Props): React.ReactElement => {
-  console.log({ dicomObjectMetadata });
   return (
     <Modal isOpen={isOpen} onClose={onClose}>
       <ModalOverlay />
@@ -49,7 +48,7 @@ const DicomObjectDetailsTable = ({ dicomObjectMetadata }: DicomObjectDetailsTabl
           .map(([name, value]) => (
             <tr key={name}>
               <td className="border px-4 py-2 text-emerald-600 text-center">{capitalCase(name)}</td>
-              <td className="border px-4 py-2 text-emerald-600 text-center">{value}</td>
+              <td className="border px-4 py-2 text-emerald-600 text-center">{String(value)}</td>
             </tr>
           ))}
       </tbody>
