@@ -1,5 +1,5 @@
 {
-  "name": "dicom-viewer",
+  "name": "dicom-browser",
   "version": "0.1.0",
   "private": true,
   "scripts": {
