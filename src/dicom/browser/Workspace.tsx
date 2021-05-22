@@ -6,7 +6,7 @@ import { Circle, Group, Image as KonvaImage, Label, Layer, Line, Stage, Tag, Tex
 import { useKey } from "react-use";
 
 import { PixelSpacing } from "../domain/common";
-import { Vector2D, ViewPort } from "./common";
+import { Position, ViewPort } from "./common";
 
 type Props = {
   width: number;
@@ -20,13 +20,13 @@ type Props = {
   measuresDraggable: boolean;
   pixelSpacing?: PixelSpacing;
 
-  onWorkspaceMouseDown: (mousePosition: Vector2D) => void;
-  onWorkspaceMouseMove: (mousePosition: Vector2D) => void;
+  onWorkspaceMouseDown: (mousePosition: Position) => void;
+  onWorkspaceMouseMove: (mousePosition: Position) => void;
   onWorkspaceMouseUp: () => void;
   onWorkspaceMouseLeave: () => void;
 
-  onImageMouseDown: (mousePosition: Vector2D) => void;
-  onImageMouseMove: (mousePosition: Vector2D) => void;
+  onImageMouseDown: (mousePosition: Position) => void;
+  onImageMouseMove: (mousePosition: Position) => void;
 };
 
 export const Workspace = ({
@@ -151,7 +151,7 @@ export const Workspace = ({
   ) : null;
 };
 
-const getRelativePointerPosition = (node: ShapeType | StageType): Vector2D | undefined => {
+const getRelativePointerPosition = (node: ShapeType | StageType): Position | undefined => {
   // the function will return pointer position relative to the passed node
   const transform = node.getAbsoluteTransform().copy();
   // to detect relative position we need to invert transform
@@ -286,7 +286,7 @@ const MeasureComponent = ({
   );
 };
 
-const distance = (pointPosition: Vector2D, otherPointPosition: Vector2D, pixelSpacing?: PixelSpacing): number => {
+const distance = (pointPosition: Position, otherPointPosition: Position, pixelSpacing?: PixelSpacing): number => {
   const rowScaling = pixelSpacing != null ? pixelSpacing.row : 1;
   const rowLength = (pointPosition.x - otherPointPosition.x) * rowScaling;
 
@@ -297,14 +297,14 @@ const distance = (pointPosition: Vector2D, otherPointPosition: Vector2D, pixelSp
 
 const formatDistance = (distance: number, lengthUnit: LengthUnit): string => `${distance.toFixed(4)} ${lengthUnit}`;
 
-const calcTextPosition = (pointPosition: Vector2D, otherPointPosition: Vector2D, scale: number): Vector2D =>
+const calcTextPosition = (pointPosition: Position, otherPointPosition: Position, scale: number): Position =>
   pointPosition.y < otherPointPosition.y
     ? { x: pointPosition.x - 48 * scale, y: pointPosition.y - 33 * scale }
     : { x: otherPointPosition.x - 48 * scale, y: otherPointPosition.y - 33 * scale };
 
 export type Measure = {
-  pointPosition: Vector2D;
-  otherPointPosition: Vector2D;
+  pointPosition: Position;
+  otherPointPosition: Position;
 };
 
 export type Measures = Record<string, Measure>;

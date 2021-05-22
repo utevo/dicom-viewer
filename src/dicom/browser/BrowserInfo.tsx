@@ -1,24 +1,34 @@
 import { capitalCase } from "change-case";
-import { createContext, Dispatch, SetStateAction, useContext, useState } from "react";
+import clsx from "clsx";
 
-import { VoiLutModule } from "../domain/common";
+import { VoiLutModule, VoiLutWindow } from "../domain/common";
 import { ViewPort, WindowingOffset } from "./common";
 
 type Props = {
   viewPort: ViewPort;
   voiLutModule?: VoiLutModule;
-  voiLutModuleOffset?: WindowingOffset;
+  windowingOffset?: WindowingOffset;
 
   className?: string;
 };
 
-export const BrowserInfo = ({ viewPort, voiLutModule, voiLutModuleOffset, className }: Props): React.ReactElement => {
-  const [browserInfo] = useBrowserInfo();
+export const BrowserInfo = ({ viewPort, voiLutModule, windowingOffset, className }: Props): React.ReactElement => {
+  const window: VoiLutWindow | undefined =
+    voiLutModule !== undefined
+      ? {
+          center: voiLutModule.window.center + (windowingOffset?.windowCenterOffset ?? 0),
+          width: voiLutModule.window.width + (windowingOffset?.windowWidthOffset ?? 0),
+        }
+      : undefined;
+
+  const browserInfo = {
+    rotation: `${viewPort.rotation % 360}°`,
+    zoom: `${viewPort.zoom.toFixed(2)}`,
+    ...(window && { window: `[${window.center.toFixed(0)}, ${window.width.toFixed(0)}]` }),
+  };
+
   return (
-    <ul className={className}>
-      <li>View Port: {JSON.stringify(viewPort)}</li>
-      {voiLutModule && <li>VOI LUT Module: {JSON.stringify(voiLutModule)}</li>}
-      {voiLutModuleOffset && <li>Windowing Offset: {JSON.stringify(voiLutModuleOffset)}</li>}
+    <table className={clsx("table-fixed bg-white w-80", className)}>
       {Object.entries(browserInfo)
         .filter(([_, value]) => value != null)
         .map(([name, value]) => (
@@ -29,24 +39,6 @@ export const BrowserInfo = ({ viewPort, voiLutModule, voiLutModuleOffset, classN
             </td>
           </tr>
         ))}
-    </ul>
+    </table>
   );
 };
-
-type BrowserInfo = Record<string, unknown>;
-type BrowserInfoContextValue = [BrowserInfo, Dispatch<SetStateAction<BrowserInfo>>];
-
-const browserInfoContextValueStub: BrowserInfoContextValue = [{}, () => undefined];
-
-const BrowserInfoContext = createContext<BrowserInfoContextValue>(browserInfoContextValueStub);
-
-type BrowserInfoProvideProps = {
-  children: React.ReactNode;
-};
-export const BrowserInfoProvider = ({ children }: BrowserInfoProvideProps): React.ReactElement => {
-  const [browserInfo, setBrowserInfo] = useState<BrowserInfo>({});
-
-  return <BrowserInfoContext.Provider value={[browserInfo, setBrowserInfo]}>{children}</BrowserInfoContext.Provider>;
-};
-
-export const useBrowserInfo = (): BrowserInfoContextValue => useContext(BrowserInfoContext);

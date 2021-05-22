@@ -1,5 +1,5 @@
 export type ViewPort = {
-  position: Vector2D;
+  position: Position;
   rotation: number;
   zoom: number;
 };
@@ -13,16 +13,16 @@ export const ViewPort = {
   },
 };
 
-export type Vector2D = {
+export type Position = {
   readonly x: number;
   readonly y: number;
 };
-export const Vector2D = {
-  add: (vector: Vector2D, otherVector: Vector2D): Vector2D => ({
+export const Position = {
+  add: (vector: Position, otherVector: Position): Position => ({
     x: vector.x + otherVector.x,
     y: vector.y + otherVector.y,
   }),
-  subtract: (vector: Vector2D, otherVector: Vector2D): Vector2D => ({
+  subtract: (vector: Position, otherVector: Position): Position => ({
     x: vector.x - otherVector.x,
     y: vector.y - otherVector.y,
   }),

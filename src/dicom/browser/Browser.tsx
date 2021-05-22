@@ -9,8 +9,8 @@ import { useNotify } from "../../common/notify";
 import { DicomImage } from "../domain/DicomImage";
 import { DicomObject, DicomObjectMetadata } from "../domain/DicomObject";
 import { ImageData_ } from "../domain/ImageData";
-import { BrowserInfo, useBrowserInfo } from "./BrowserInfo";
-import { Vector2D, ViewPort, WindowingOffset } from "./common";
+import { BrowserInfo } from "./BrowserInfo";
+import { Position, ViewPort, WindowingOffset } from "./common";
 import { DicomObjectDetails } from "./DicomObjectDetails";
 import { FilesController } from "./Files";
 import { InputDirectory } from "./InputDirectory";
@@ -23,7 +23,6 @@ type Props = {
 
 export const Browser = ({ className }: Props): React.ReactElement => {
   const notify = useNotify();
-  const [browserInfo, setBrowserInfo] = useBrowserInfo();
 
   const [dicomObjectMetadata, setDicomObjectMetadata] = useState<DicomObjectMetadata>();
   const [dicomImage, setDicomImage] = useState<DicomImage>();
@@ -32,15 +31,11 @@ export const Browser = ({ className }: Props): React.ReactElement => {
   const [windowingOffset, setWindowingOffset] = useState<WindowingOffset>(WindowingOffset.default());
   const [tool, setTool] = useState<Tool>(Tool.Cursor);
   const [mouseDown, setMouseDown] = useState<boolean>(false);
-  const [prevMousePosition, setPrevMousePosition] = useState<Vector2D>({ x: 0, y: 0 });
+  const [prevMousePosition, setPrevMousePosition] = useState<Position>({ x: 0, y: 0 });
   const [workspaceSize, setWorkspaceSize] = useState<Size>({ width: 0, height: 0 });
 
   const [measures, setMeasures] = useState<Measures>({});
   const [addingMeasureUuid, setAddingMeasureUuid] = useState<string | undefined>();
-
-  useEffect(() => {
-    setBrowserInfo((browserInfo) => ({ ...browserInfo, measures: Object.values(measures) }));
-  }, [measures, setBrowserInfo]);
 
   const handleDicomObjectChange = (newDicomObject: DicomObject) => {
     const { pixelData, ...dicomObjectMetadata } = { ...newDicomObject };
@@ -70,11 +65,11 @@ export const Browser = ({ className }: Props): React.ReactElement => {
     setImageData(imageData);
   }, [dicomImage, notify, windowingOffset]);
 
-  const handleWorkspaceMouseDown = (currMousePosition: Vector2D): void => {
+  const handleWorkspaceMouseDown = (currMousePosition: Position): void => {
     setMouseDown(true);
   };
 
-  const handleWorkspaceMouseMove = (currMousePosition: Vector2D): void => {
+  const handleWorkspaceMouseMove = (currMousePosition: Position): void => {
     const mousePositionDiff = {
       x: currMousePosition.x - prevMousePosition.x,
       y: currMousePosition.y - prevMousePosition.y,
@@ -91,7 +86,7 @@ export const Browser = ({ className }: Props): React.ReactElement => {
       })
       .with([Tool.Pan, true], () => {
         const newViewPort = produce(viewPort, (draftViewPort) => {
-          draftViewPort.position = Vector2D.add(draftViewPort.position, mousePositionDiff);
+          draftViewPort.position = Position.add(draftViewPort.position, mousePositionDiff);
         });
         setViewPort(newViewPort);
       })
@@ -99,7 +94,7 @@ export const Browser = ({ className }: Props): React.ReactElement => {
         const rotationDiff = -mousePositionDiff.y / 4;
         const newViewPort: ViewPort = {
           ...viewPort,
-          rotation: viewPort.rotation + rotationDiff,
+          rotation: (viewPort.rotation + rotationDiff + 360) % 360,
         };
         setViewPort(newViewPort);
       })
@@ -142,7 +137,7 @@ export const Browser = ({ className }: Props): React.ReactElement => {
     }
   };
 
-  const handleImageMouseDown = (currMousePosition: Vector2D): void => {
+  const handleImageMouseDown = (currMousePosition: Position): void => {
     match(tool)
       .with(Tool.AddMeasure, () => {
         const newMeasure: Measure = {
@@ -162,7 +157,7 @@ export const Browser = ({ className }: Props): React.ReactElement => {
       .exhaustive();
   };
 
-  const handleImageMouseMove = (currMousePosition: Vector2D): void => {
+  const handleImageMouseMove = (currMousePosition: Position): void => {
     match([tool, mouseDown])
       .with([Tool.AddMeasure, true], () => {
         if (addingMeasureUuid === undefined) {
@@ -240,12 +235,14 @@ export const Browser = ({ className }: Props): React.ReactElement => {
         isOpen={isDicomObjectDetailsOpen}
         onClose={() => setIsDicomObjectDetailsOpen(false)}
       />
-      <BrowserInfo
-        className="fixed bottom-5 right-5"
-        viewPort={viewPort}
-        voiLutModule={dicomImage?._tag === "grayScale" ? dicomImage.voiLutModule : undefined}
-        voiLutModuleOffset={windowingOffset}
-      />
+      {dicomImage && (
+        <BrowserInfo
+          className="fixed bottom-5 right-5"
+          viewPort={viewPort}
+          voiLutModule={dicomImage?._tag === "grayScale" ? dicomImage.voiLutModule : undefined}
+          windowingOffset={windowingOffset}
+        />
+      )}
     </div>
   );
 };

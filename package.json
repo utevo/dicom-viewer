@@ -6,6 +6,7 @@
     "dev": "next dev",
     "dev-https": "node server.js",
     "build": "next build",
+    "build-export": "next build && next export",
     "start": "next start",
     "lint": "eslint --fix 'src/**/*.{ts,tsx,js,jsx}'",
     "lint-check": "eslint 'src/**/*.{ts,tsx,js,jsx}' --max-warnings 0",
@@ -47,9 +48,9 @@
     "eslint-plugin-react-hooks": "^4.2.0",
     "eslint-plugin-simple-import-sort": "^7.0.0",
     "eslint-plugin-unused-imports": "^1.1.1",
-    "postcss": "^8.2.9",
+    "postcss": "^8.3.0",
     "prettier": "2.2.1",
-    "tailwindcss": "^2.1.1",
+    "tailwindcss": "^2.1.2",
     "typescript": "^4.2.4"
   }
 }
