@@ -1,7 +1,7 @@
 import Konva from "konva";
 import { KonvaEventObject } from "konva/types/Node";
 import React, { useEffect, useState } from "react";
-import { Line, Circle, Layer, Stage, useStrictMode } from "react-konva";
+import { Circle, Layer, Line, Stage, useStrictMode } from "react-konva";
 
 type Position = {
   x: number;

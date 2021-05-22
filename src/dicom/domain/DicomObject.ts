@@ -1,6 +1,7 @@
 import { DataSet, parseDicom } from "dicom-parser";
-import { match, __ } from "ts-pattern";
-import { Result, ok, err } from "../../common/adt";
+import { __, match } from "ts-pattern";
+
+import { err, ok, Result } from "../../common/adt";
 import {
   PhotometricInterpratation,
   PixelRepresentation,

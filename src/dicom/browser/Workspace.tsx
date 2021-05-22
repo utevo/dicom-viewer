@@ -1,11 +1,13 @@
 import Konva from "konva";
 import { KonvaEventObject } from "konva/types/Node";
+import { Shape as ShapeType } from "konva/types/Shape";
+import { Stage as StageType } from "konva/types/Stage";
 import React, { useEffect, useState } from "react";
-import { Circle, Group, Image as KonvaImage, Layer, Line, Text, Stage, Rect, Label, Tag } from "react-konva";
+import { Circle, Group, Image as KonvaImage, Label, Layer, Line, Rect, Stage, Tag, Text } from "react-konva";
 import { useKey } from "react-use";
+
 import { PixelSpacing } from "../domain/common";
-import { calcViewPortDefault } from "./Browser";
-import { Position, ViewPort } from "./common";
+import { Vector2D, ViewPort } from "./common";
 
 type Props = {
   width: number;
@@ -19,10 +21,13 @@ type Props = {
   measuresDraggable: boolean;
   pixelSpacing?: PixelSpacing;
 
-  onMouseDown: (evt: Konva.KonvaEventObject<MouseEvent>) => void;
-  onMouseMove: (evt: Konva.KonvaEventObject<MouseEvent>) => void;
-  onMouseUp: (evt: Konva.KonvaEventObject<MouseEvent>) => void;
-  onMouseLeave: (evt: Konva.KonvaEventObject<MouseEvent>) => void;
+  onWorkspaceMouseDown: (mousePosition: Vector2D) => void;
+  onWorkspaceMouseMove: (mousePosition: Vector2D) => void;
+  onWorkspaceMouseUp: () => void;
+  onWorkspaceMouseLeave: () => void;
+
+  onImageMouseDown: (mousePosition: Vector2D) => void;
+  onImageMouseMove: (mousePosition: Vector2D) => void;
 };
 
 export const Workspace = ({
@@ -36,10 +41,13 @@ export const Workspace = ({
   measuresDraggable = false,
   pixelSpacing,
 
-  onMouseDown,
-  onMouseMove,
-  onMouseUp,
-  onMouseLeave,
+  onWorkspaceMouseDown,
+  onWorkspaceMouseMove,
+  onWorkspaceMouseUp,
+  onWorkspaceMouseLeave,
+
+  onImageMouseDown,
+  onImageMouseMove,
 }: Props): React.ReactElement | null => {
   const [imageBitmap, setImageBitmap] = useState<ImageBitmap>();
 
@@ -80,7 +88,7 @@ export const Workspace = ({
   };
 
   const handleKey = (evt: KeyboardEvent): void => {
-    if (evt.key === "Backspace") {
+    if (evt.key === "Backspace" || evt.key === "Delete") {
       if (draggingMeasureKey !== undefined) {
         handleMeasureDelete(draggingMeasureKey);
       }
@@ -88,19 +96,32 @@ export const Workspace = ({
   };
   useKey(() => true, handleKey);
 
-  const measureOffset = calcViewPortDefault(
-    { width, height },
-    { width: imageData?.width ?? 0, height: imageData?.height ?? 0 }
-  ).position;
+  const handleImageMouseDown = (evt: KonvaEventObject<MouseEvent>) => {
+    const maybePosition = getRelativePointerPosition(evt.target);
+    if (maybePosition !== undefined) {
+      onImageMouseDown(maybePosition);
+    }
+  };
+
+  const handleImageMouseMove = (evt: KonvaEventObject<MouseEvent>) => {
+    const maybePosition = getRelativePointerPosition(evt.target);
+    if (maybePosition !== undefined) {
+      onImageMouseMove(maybePosition);
+    }
+  };
 
   return imageData ? (
     <Stage
       width={width}
       height={height}
-      onMouseDown={onMouseDown}
-      onMouseMove={onMouseMove}
-      onMouseUp={onMouseUp}
-      onMouseLeave={onMouseLeave}
+      onMouseDown={(evt: KonvaEventObject<MouseEvent>) =>
+        onWorkspaceMouseDown({ x: evt.evt.offsetX, y: evt.evt.offsetY })
+      }
+      onMouseMove={(evt: KonvaEventObject<MouseEvent>) =>
+        onWorkspaceMouseMove({ x: evt.evt.offsetX, y: evt.evt.offsetY })
+      }
+      onMouseUp={onWorkspaceMouseUp}
+      onMouseLeave={onWorkspaceMouseLeave}
     >
       <Layer>
         <Group
@@ -112,7 +133,7 @@ export const Workspace = ({
           offset={offset}
           scale={{ x: viewPort.zoom, y: viewPort.zoom }}
         >
-          <KonvaImage image={imageBitmap} />
+          <KonvaImage image={imageBitmap} onMouseDown={handleImageMouseDown} onMouseMove={handleImageMouseMove} />
           {Object.entries(measures).map(([key, measure]) => (
             <MeasureComponent
               key={key}
@@ -123,13 +144,28 @@ export const Workspace = ({
               onDragEnd={() => handleDragEnd(key)}
               pixelSpacing={pixelSpacing}
               scale={1 / viewPort.zoom}
-              offset={measureOffset}
             />
           ))}
         </Group>
       </Layer>
     </Stage>
   ) : null;
+};
+
+const getRelativePointerPosition = (node: ShapeType | StageType): Vector2D | undefined => {
+  // the function will return pointer position relative to the passed node
+  const transform = node.getAbsoluteTransform().copy();
+  // to detect relative position we need to invert transform
+  transform.invert();
+
+  // get pointer (say mouse or touch) position
+  const pos = node.getStage()?.getPointerPosition();
+
+  if (pos == undefined) {
+    return undefined;
+  }
+  // now we find relative point
+  return transform.point(pos);
 };
 
 type MeasureComponentProps = {
@@ -142,7 +178,6 @@ type MeasureComponentProps = {
   pixelSpacing?: PixelSpacing;
 
   scale?: number;
-  offset?: Position;
 };
 
 const MeasureComponent = ({
@@ -153,7 +188,6 @@ const MeasureComponent = ({
   onDragEnd,
   pixelSpacing,
   scale = 1,
-  offset = { x: 0, y: 0 },
 }: MeasureComponentProps): React.ReactElement => {
   const handleDragMovePoint = (evt: KonvaEventObject<DragEvent>): void => {
     const newPointPosition = evt.target.getPosition();
@@ -192,7 +226,7 @@ const MeasureComponent = ({
 
   const textPosition = calcTextPosition(pointPosition, otherPointPosition, scale);
   return (
-    <Group offset={offset}>
+    <Group>
       <Label x={textPosition.x} y={textPosition.y}>
         <Tag fill="black" pointerWidth={10} />
         <Text
@@ -253,7 +287,7 @@ const MeasureComponent = ({
   );
 };
 
-const distance = (pointPosition: Position, otherPointPosition: Position, pixelSpacing?: PixelSpacing): number => {
+const distance = (pointPosition: Vector2D, otherPointPosition: Vector2D, pixelSpacing?: PixelSpacing): number => {
   const rowScaling = pixelSpacing != null ? pixelSpacing.row : 1;
   const rowLength = (pointPosition.x - otherPointPosition.x) * rowScaling;
 
@@ -264,14 +298,14 @@ const distance = (pointPosition: Position, otherPointPosition: Position, pixelSp
 
 const formatDistance = (distance: number, lengthUnit: LengthUnit): string => `${distance.toFixed(4)} ${lengthUnit}`;
 
-const calcTextPosition = (pointPosition: Position, otherPointPosition: Position, scale: number): Position =>
+const calcTextPosition = (pointPosition: Vector2D, otherPointPosition: Vector2D, scale: number): Vector2D =>
   pointPosition.y < otherPointPosition.y
     ? { x: pointPosition.x - 48 * scale, y: pointPosition.y - 33 * scale }
     : { x: otherPointPosition.x - 48 * scale, y: otherPointPosition.y - 33 * scale };
 
 export type Measure = {
-  pointPosition: Position;
-  otherPointPosition: Position;
+  pointPosition: Vector2D;
+  otherPointPosition: Vector2D;
 };
 
 export type Measures = Record<string, Measure>;

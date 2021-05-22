@@ -1,5 +1,6 @@
 import { TableColumnHeaderProps } from "@chakra-ui/react";
-import { match, __ } from "ts-pattern";
+import { __, match } from "ts-pattern";
+
 import { err, ok, Result } from "../../common/adt";
 
 export enum TransferSyntax {

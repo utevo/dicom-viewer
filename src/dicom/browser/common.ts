@@ -1,5 +1,5 @@
 export type ViewPort = {
-  position: Position;
+  position: Vector2D;
   rotation: number;
   zoom: number;
 };
@@ -13,9 +13,19 @@ export const ViewPort = {
   },
 };
 
-export type Position = {
-  x: number;
-  y: number;
+export type Vector2D = {
+  readonly x: number;
+  readonly y: number;
+};
+export const Vector2D = {
+  add: (vector: Vector2D, otherVector: Vector2D): Vector2D => ({
+    x: vector.x + otherVector.x,
+    y: vector.y + otherVector.y,
+  }),
+  subtract: (vector: Vector2D, otherVector: Vector2D): Vector2D => ({
+    x: vector.x - otherVector.x,
+    y: vector.y - otherVector.y,
+  }),
 };
 
 export type WindowingOffset = {

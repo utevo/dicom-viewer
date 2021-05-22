@@ -1,21 +1,21 @@
-import React, { useEffect, useState } from "react";
-import Konva from "konva";
 import clsx from "clsx";
+import produce from "immer";
+import React, { useEffect, useState } from "react";
 import AutoSizer from "react-virtualized-auto-sizer";
-import { Tool, ToolBar } from "./Tools";
-import { Measure, Measures, Workspace } from "./Workspace";
+import { __, match } from "ts-pattern";
+import { v4 as uuid4 } from "uuid";
+
+import { useNotify } from "../../common/notify";
 import { DicomImage } from "../domain/DicomImage";
 import { DicomObject, DicomObjectMetadata } from "../domain/DicomObject";
-import { Position, ViewPort, WindowingOffset } from "./common";
-import { InputDirectory } from "./InputDirectory";
-import { FilesController } from "./Files";
 import { ImageData_ } from "../domain/ImageData";
-import { useNotify } from "../../common/notify";
-import { BrowserInfo } from "./BrowserInfo";
-import { match, __ } from "ts-pattern";
+import { BrowserInfo, useBrowserInfo } from "./BrowserInfo";
+import { Vector2D, ViewPort, WindowingOffset } from "./common";
 import { DicomObjectDetails } from "./DicomObjectDetails";
-import { v4 as uuid4 } from "uuid";
-import produce from "immer";
+import { FilesController } from "./Files";
+import { InputDirectory } from "./InputDirectory";
+import { Tool, ToolBar } from "./Tools";
+import { Measure, Measures, Workspace } from "./Workspace";
 
 type Props = {
   className?: string;
@@ -23,6 +23,7 @@ type Props = {
 
 export const Browser = ({ className }: Props): React.ReactElement => {
   const notify = useNotify();
+  const [browserInfo, setBrowserInfo] = useBrowserInfo();
 
   const [dicomObjectMetadata, setDicomObjectMetadata] = useState<DicomObjectMetadata>();
   const [dicomImage, setDicomImage] = useState<DicomImage>();
@@ -31,13 +32,15 @@ export const Browser = ({ className }: Props): React.ReactElement => {
   const [windowingOffset, setWindowingOffset] = useState<WindowingOffset>(WindowingOffset.default());
   const [tool, setTool] = useState<Tool>(Tool.Cursor);
   const [mouseDown, setMouseDown] = useState<boolean>(false);
-  const [prevMousePosition, setPrevMousePosition] = useState<Position>({ x: 0, y: 0 });
+  const [prevMousePosition, setPrevMousePosition] = useState<Vector2D>({ x: 0, y: 0 });
   const [workspaceSize, setWorkspaceSize] = useState<Size>({ width: 0, height: 0 });
 
-  const [measures, setMeasures] = useState<Measures>({
-    [uuid4()]: { pointPosition: { x: 10, y: 10 }, otherPointPosition: { x: 100, y: 100 } },
-  });
+  const [measures, setMeasures] = useState<Measures>({});
   const [addingMeasureUuid, setAddingMeasureUuid] = useState<string | undefined>();
+
+  useEffect(() => {
+    setBrowserInfo((browserInfo) => ({ ...browserInfo, measures: Object.values(measures) }));
+  }, [measures, setBrowserInfo]);
 
   const handleDicomObjectChange = (newDicomObject: DicomObject) => {
     const { pixelData, ...dicomObjectMetadata } = { ...newDicomObject };
@@ -67,31 +70,11 @@ export const Browser = ({ className }: Props): React.ReactElement => {
     setImageData(imageData);
   }, [dicomImage, notify, windowingOffset]);
 
-  const handleMouseDown = (evt: Konva.KonvaEventObject<MouseEvent>): void => {
+  const handleWorkspaceMouseDown = (currMousePosition: Vector2D): void => {
     setMouseDown(true);
-    const currMousePosition = { x: evt.evt.offsetX, y: evt.evt.offsetY };
-
-    match(tool)
-      .with(Tool.AddMeasure, () => {
-        const newMeasure: Measure = {
-          pointPosition: currMousePosition,
-          otherPointPosition: currMousePosition,
-        };
-
-        const newUuid = uuid4();
-        const newMeasures = { ...measures, [newUuid]: newMeasure };
-
-        setAddingMeasureUuid(newUuid);
-        setMeasures(newMeasures);
-      })
-      .with(__, () => undefined)
-      .exhaustive();
   };
 
-  const handleMouseMove = (evt: Konva.KonvaEventObject<MouseEvent>): void => {
-    const currMousePosition = { x: evt.evt.offsetX, y: evt.evt.offsetY };
-    console.log({ evt });
-    console.log({ x: currMousePosition.x, y: currMousePosition.y });
+  const handleWorkspaceMouseMove = (currMousePosition: Vector2D): void => {
     const mousePositionDiff = {
       x: currMousePosition.x - prevMousePosition.x,
       y: currMousePosition.y - prevMousePosition.y,
@@ -106,26 +89,10 @@ export const Browser = ({ className }: Props): React.ReactElement => {
         };
         setWindowingOffset(newWindowingOffset);
       })
-      .with([Tool.AddMeasure, true], () => {
-        if (addingMeasureUuid === undefined) {
-          return;
-        }
-
-        const newMeasures = produce(measures, (newMeasures) => {
-          newMeasures[addingMeasureUuid].otherPointPosition = currMousePosition;
-          return newMeasures;
-        });
-
-        setMeasures(newMeasures);
-      })
       .with([Tool.Pan, true], () => {
-        const newViewPort = {
-          ...viewPort,
-          position: {
-            x: viewPort.position.x + mousePositionDiff.x,
-            y: viewPort.position.y + mousePositionDiff.y,
-          },
-        };
+        const newViewPort = produce(viewPort, (draftViewPort) => {
+          draftViewPort.position = Vector2D.add(draftViewPort.position, mousePositionDiff);
+        });
         setViewPort(newViewPort);
       })
       .with([Tool.Rotate, true], () => {
@@ -151,11 +118,11 @@ export const Browser = ({ className }: Props): React.ReactElement => {
     setPrevMousePosition(currMousePosition);
   };
 
-  const handleMouseUp = (evt: Konva.KonvaEventObject<MouseEvent>): void => {
+  const handleWorkspaceMouseUp = (): void => {
     setMouseDown(false);
   };
 
-  const handleMouseLeave = (evt: Konva.KonvaEventObject<MouseEvent>): void => {
+  const handleWorkspaceMouseLeave = (): void => {
     setMouseDown(false);
   };
 
@@ -173,6 +140,44 @@ export const Browser = ({ className }: Props): React.ReactElement => {
     if (tool === Tool.Cursor) {
       setMeasures(newMeasures);
     }
+  };
+
+  const handleImageMouseDown = (currMousePosition: Vector2D): void => {
+    match(tool)
+      .with(Tool.AddMeasure, () => {
+        const newMeasure: Measure = {
+          pointPosition: currMousePosition,
+          otherPointPosition: currMousePosition,
+        };
+
+        const newUuid = uuid4();
+        const newMeasures = produce(measures, (draftMeasures) => {
+          draftMeasures[newUuid] = newMeasure;
+        });
+
+        setAddingMeasureUuid(newUuid);
+        setMeasures(newMeasures);
+      })
+      .with(__, () => undefined)
+      .exhaustive();
+  };
+
+  const handleImageMouseMove = (currMousePosition: Vector2D): void => {
+    match([tool, mouseDown])
+      .with([Tool.AddMeasure, true], () => {
+        if (addingMeasureUuid === undefined) {
+          return;
+        }
+
+        const newMeasures = produce(measures, (draftMeasures) => {
+          draftMeasures[addingMeasureUuid].otherPointPosition = currMousePosition;
+          console.log({ currMousePosition });
+        });
+
+        setMeasures(newMeasures);
+      })
+      .with(__, () => undefined)
+      .exhaustive();
   };
 
   const [isDicomObjectDetailsOpen, setIsDicomObjectDetailsOpen] = useState(false);
@@ -218,10 +223,12 @@ export const Browser = ({ className }: Props): React.ReactElement => {
                 measures={measures}
                 measuresDraggable={tool === Tool.Cursor}
                 onMeasuresChange={handleMeasuresChange}
-                onMouseDown={handleMouseDown}
-                onMouseMove={handleMouseMove}
-                onMouseUp={handleMouseUp}
-                onMouseLeave={handleMouseLeave}
+                onWorkspaceMouseDown={handleWorkspaceMouseDown}
+                onWorkspaceMouseMove={handleWorkspaceMouseMove}
+                onWorkspaceMouseUp={handleWorkspaceMouseUp}
+                onWorkspaceMouseLeave={handleWorkspaceMouseLeave}
+                onImageMouseDown={handleImageMouseDown}
+                onImageMouseMove={handleImageMouseMove}
               />
             )}
           </AutoSizer>

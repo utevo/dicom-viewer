@@ -18,11 +18,12 @@
     "ecmaVersion": 12,
     "sourceType": "module"
   },
-  "plugins": ["react", "@typescript-eslint"],
+  "plugins": ["react", "@typescript-eslint", "simple-import-sort"],
   "rules": {
     "react/react-in-jsx-scope": "off",
     "jsx-a11y/anchor-is-valid": "off",
-    "@typescript-eslint/no-unused-vars": "off"
+    "@typescript-eslint/no-unused-vars": "off",
+    "simple-import-sort/imports": "error"
   },
   "settings": {
     "react": {

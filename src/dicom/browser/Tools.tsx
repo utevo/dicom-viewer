@@ -1,4 +1,7 @@
 import { Tooltip } from "@chakra-ui/react";
+import clsx from "clsx";
+import React from "react";
+import { IconType } from "react-icons";
 import {
   RiArrowGoBackLine,
   RiCursorLine,
@@ -9,9 +12,6 @@ import {
   RiWindow2Line,
   RiZoomInLine,
 } from "react-icons/ri";
-import clsx from "clsx";
-import React from "react";
-import { IconType } from "react-icons";
 
 export enum Tool {
   Cursor = "CURSOR",
