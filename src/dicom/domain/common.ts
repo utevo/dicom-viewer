@@ -1,4 +1,3 @@
-import { TableColumnHeaderProps } from "@chakra-ui/react";
 import { __, match } from "ts-pattern";
 
 import { err, ok, Result } from "../../common/adt";

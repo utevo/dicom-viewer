@@ -5,7 +5,6 @@ import { err, ok, Result } from "../../common/adt";
 import {
   PhotometricInterpratation,
   PixelRepresentation,
-  PixelSpacing,
   PlanarConfiguration,
   TransferSyntax,
   TransferSyntax_,

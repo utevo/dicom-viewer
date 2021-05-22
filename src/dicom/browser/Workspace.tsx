@@ -1,9 +1,8 @@
-import Konva from "konva";
 import { KonvaEventObject } from "konva/types/Node";
 import { Shape as ShapeType } from "konva/types/Shape";
 import { Stage as StageType } from "konva/types/Stage";
 import React, { useEffect, useState } from "react";
-import { Circle, Group, Image as KonvaImage, Label, Layer, Line, Rect, Stage, Tag, Text } from "react-konva";
+import { Circle, Group, Image as KonvaImage, Label, Layer, Line, Stage, Tag, Text } from "react-konva";
 import { useKey } from "react-use";
 
 import { PixelSpacing } from "../domain/common";
