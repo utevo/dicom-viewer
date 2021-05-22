@@ -1,7 +1,7 @@
 
-# 🩺 dicom-browser
+# dicom-browser
 
-Elegant DICOM browser created using web technologies
+🩺 Elegant DICOM browser created using web technologies
 
 ## Tech Stack
 
