@@ -9,7 +9,6 @@ type Props = {
 export function InputDirectory({ onDirectoryHandleChange, className }: Props): React.ReactElement {
   const handleClick = async (evt: React.MouseEvent<HTMLButtonElement>) => {
     const showDirectoryPicker = window.showDirectoryPicker;
-    console.assert(showDirectoryPicker != null, "Unable to use showDirectoryPicker");
 
     try {
       onDirectoryHandleChange(await showDirectoryPicker());
@@ -19,7 +18,10 @@ export function InputDirectory({ onDirectoryHandleChange, className }: Props): R
 
   return (
     <button
-      className={clsx("font-bold text-lg py-2 px-6 my-1 rounded-full bg-blue-500 text-white align-middle", className)}
+      className={clsx(
+        "font-bold text-lg py-2 px-6 mt-2 shadow-lg rounded-full bg-blue-500 text-white align-middle",
+        className
+      )}
       onClick={handleClick}
     >
       Select Directory

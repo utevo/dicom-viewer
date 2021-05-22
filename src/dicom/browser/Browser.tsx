@@ -259,3 +259,5 @@ export const calcViewPortDefault = (workspaceSize: Size, imageSize: Size): ViewP
     zoom: 1,
   };
 };
+
+export const checkIfIsBrowserSupported = (): boolean => window.showDirectoryPicker !== undefined;
