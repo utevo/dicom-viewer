@@ -8,13 +8,13 @@
     "build": "next build",
     "build-export": "next build && next export",
     "start": "next start",
-    "lint": "eslint --fix 'src/**/*.{ts,tsx,js,jsx}'",
+    "ts-check": "npx tsc --noEmit",
     "lint-check": "eslint 'src/**/*.{ts,tsx,js,jsx}' --max-warnings 0",
-    "format": "prettier --write 'src/**/*.{ts,tsx,js,jsx}'",
+    "lint-fix": "eslint --fix 'src/**/*.{ts,tsx,js,jsx}'",
     "format-check": "prettier --check 'src/**/*.{ts,tsx,js,jsx}'",
-    "types-check": "npx tsc --noEmit",
-    "check": "npm run types-check && npm run lint-check && npm run format-check",
-    "fix": "npm run lint && npm run format"
+    "format-fix": "prettier --write 'src/**/*.{ts,tsx,js,jsx}'",
+    "check": "npm run ts-check && npm run lint-check && npm run format-check",
+    "fix": "npm run lint-fix && npm run format-fix"
   },
   "dependencies": {
     "@chakra-ui/react": "^1.6.0",
