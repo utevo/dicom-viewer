@@ -36,4 +36,3 @@ To start development of this project run
 ## License
 
 [MIT](https://choosealicense.com/licenses/mit/)
-
