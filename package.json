@@ -6,7 +6,7 @@
     "dev": "next dev",
     "dev-https": "node server.js",
     "build": "next build",
-    "build-export": "next build && next export",
+    "export": "next export",
     "start": "next start",
     "ts-check": "npx tsc --noEmit",
     "lint-check": "eslint 'src/**/*.{ts,tsx,js,jsx}' --max-warnings 0",
