@@ -1,4 +1,4 @@
-import { KonvaEventObject } from "konva/types/Node";
+import { KonvaEventObject } from "konva/lib/Node";
 import React, { useEffect, useState } from "react";
 import { Circle, Layer, Line, Stage, useStrictMode } from "react-konva";
 
