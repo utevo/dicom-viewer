@@ -1,6 +1,6 @@
-import { KonvaEventObject } from "konva/lib/Node";
-import { Shape as ShapeType } from "konva/lib/Shape";
-import { Stage as StageType } from "konva/lib/Stage";
+import { KonvaEventObject } from "konva/types/Node";
+import { Shape as ShapeType } from "konva/types/Shape";
+import { Stage as StageType } from "konva/types/Stage";
 import React, { useEffect, useState } from "react";
 import { Circle, Group, Image as KonvaImage, Label, Layer, Line, Stage, Tag, Text } from "react-konva";
 import { useKey } from "react-use";
