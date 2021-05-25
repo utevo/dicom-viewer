@@ -1,6 +1,6 @@
 import { __, match } from "ts-pattern";
 
-import { err, ok, Result } from "../../common/adt";
+import { Err, Ok, Result } from "../../common/adt";
 
 export enum TransferSyntax {
   JPEG2000 = "JPEG2000",
@@ -16,13 +16,13 @@ export const TransferSyntax_ = {
 
   fromTransferSyntaxUID: (transferSyntax: string): Result<TransferSyntax, string> =>
     match(transferSyntax)
-      .with("1.2.840.10008.1.2", "1.2.840.10008.1.2.1", () => ok(TransferSyntax.UncompressedLE))
-      .with("1.2.840.10008.1.2.2", () => ok(TransferSyntax.UncompressedBE))
-      .with("1.2.840.10008.1.2.4.90", "1.2.840.10008.1.2.4.91", () => ok(TransferSyntax.JPEG2000))
-      .with("1.2.840.10008.1.2.5", () => ok(TransferSyntax.DecodeRLE))
-      .with("1.2.840.10008.1.2.4.57", "1.2.840.10008.1.2.4.70", () => ok(TransferSyntax.JPEGLossless))
-      .with("1.2.840.10008.1.2.4.50", "1.2.840.10008.1.2.4.51", () => ok(TransferSyntax.JPEGBaseline))
-      .with(__, () => err("Unexpected transfer syntax"))
+      .with("1.2.840.10008.1.2", "1.2.840.10008.1.2.1", () => Ok(TransferSyntax.UncompressedLE))
+      .with("1.2.840.10008.1.2.2", () => Ok(TransferSyntax.UncompressedBE))
+      .with("1.2.840.10008.1.2.4.90", "1.2.840.10008.1.2.4.91", () => Ok(TransferSyntax.JPEG2000))
+      .with("1.2.840.10008.1.2.5", () => Ok(TransferSyntax.DecodeRLE))
+      .with("1.2.840.10008.1.2.4.57", "1.2.840.10008.1.2.4.70", () => Ok(TransferSyntax.JPEGLossless))
+      .with("1.2.840.10008.1.2.4.50", "1.2.840.10008.1.2.4.51", () => Ok(TransferSyntax.JPEGBaseline))
+      .with(__, () => Err("Unexpected transfer syntax"))
       .exhaustive(),
 
   toCompressionAndEndianness: (transferSyntax: TransferSyntax): [Compression, Endianness] =>
@@ -53,7 +53,7 @@ export enum PhotometricInterpratation { // DON'T CHANGE VALUES!
   Monochrome1 = "MONOCHROME1",
   Monochrome2 = "MONOCHROME2",
   PaletteColor = "PALETTE COLOR",
-  Rgb = "RGB",
+  Rgb = "Rgb",
   Hsv = "HSV",
   Argb = "ARGB",
   Cmyk = "CMYK",
@@ -108,16 +108,16 @@ export const PixelSpacing = {
   fromString: (str: string): Result<PixelSpacing, string> => {
     const rawNumbers = str.split("\\");
     if (rawNumbers.length != 2) {
-      return err("Invalid value of Pixel Spacing");
+      return Err("Invalid value of Pixel Spacing");
     }
 
     try {
-      return ok({
+      return Ok({
         row: Number.parseFloat(rawNumbers[0]),
         column: Number.parseFloat(rawNumbers[1]),
       });
     } catch (e) {
-      return err("Invalid value of Pixel Spacing");
+      return Err("Invalid value of Pixel Spacing");
     }
   },
 };

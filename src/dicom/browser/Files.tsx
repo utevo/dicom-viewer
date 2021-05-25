@@ -45,14 +45,14 @@ export const FilesController = ({ directoryHandle, onFileChange, className }: Pr
 type FsFile = FsRegularFile | FsDirectory;
 
 type FsRegularFile = {
-  _tag: "regularFile";
+  _tag: "RegularFile";
 
   name: string;
   handle: FileSystemFileHandle;
 };
 
 type FsDirectory = {
-  _tag: "directory";
+  _tag: "Directory";
 
   name: string;
   files: FsFile[];
@@ -67,13 +67,13 @@ const directoryFromDirectoryHandle = async (directoryHandle: FileSystemDirectory
   for await (const entity of directoryHandle.entries()) {
     const [name, handle] = entity;
     if (((handle as unknown) as HaveKindProp).kind === "file") {
-      files.push({ _tag: "regularFile", name, handle: handle as FileSystemFileHandle });
+      files.push({ _tag: "RegularFile", name, handle: handle as FileSystemFileHandle });
     } else {
       files.push(await directoryFromDirectoryHandle(handle as FileSystemDirectoryHandle));
     }
   }
 
-  return { _tag: "directory", name: directoryHandle.name, files };
+  return { _tag: "Directory", name: directoryHandle.name, files };
 };
 
 type DirectoryComponentProps = {
@@ -97,7 +97,7 @@ const DirectoryComponent = ({
         </AccordionButton>
         <AccordionPanel py={0} className="flex flex-col py-0 divide-y">
           {directory.files.map((file, idx) =>
-            file._tag === "regularFile" ? (
+            file._tag === "RegularFile" ? (
               <RegularFileComponent
                 key={`${directory.name}/${file.name}`}
                 regularFile={file}

@@ -40,7 +40,7 @@ export const Browser = ({ className }: Props): React.ReactElement => {
   const handleDicomObjectChange = (newDicomObject: DicomObject) => {
     const { pixelData, ...dicomObjectMetadata } = { ...newDicomObject };
     const dicomImageResult = DicomImage.fromDicomObject(newDicomObject);
-    if (dicomImageResult._tag === "err") {
+    if (dicomImageResult._tag === "Err") {
       notify.error(dicomImageResult.error);
       return;
     }
@@ -56,7 +56,7 @@ export const Browser = ({ className }: Props): React.ReactElement => {
       return;
     }
     const imageDataResult = ImageData_.fromDicomImage(dicomImage, windowingOffset);
-    if (imageDataResult._tag === "err") {
+    if (imageDataResult._tag === "Err") {
       notify.error(imageDataResult.error);
       return;
     }
@@ -166,7 +166,6 @@ export const Browser = ({ className }: Props): React.ReactElement => {
 
         const newMeasures = produce(measures, (draftMeasures) => {
           draftMeasures[addingMeasureUuid].otherPointPosition = currMousePosition;
-          console.log({ currMousePosition });
         });
 
         setMeasures(newMeasures);
@@ -187,7 +186,7 @@ export const Browser = ({ className }: Props): React.ReactElement => {
 
   const handleFileChange = async (file: File): Promise<void> => {
     const dicomObjectResult = await DicomObject.fromFile(file);
-    if (dicomObjectResult._tag === "err") {
+    if (dicomObjectResult._tag === "Err") {
       notify.error(dicomObjectResult.error);
       return;
     }
@@ -239,7 +238,7 @@ export const Browser = ({ className }: Props): React.ReactElement => {
         <BrowserInfo
           className="fixed bottom-5 right-5"
           viewPort={viewPort}
-          voiLutModule={dicomImage?._tag === "grayScale" ? dicomImage.voiLutModule : undefined}
+          voiLutModule={dicomImage?._tag === "GrayScale" ? dicomImage.voiLutModule : undefined}
           windowingOffset={windowingOffset}
         />
       )}

@@ -1,6 +1,6 @@
 import { __, match } from "ts-pattern";
 
-import { err, ok, Result } from "../../common/adt";
+import { Err, Ok, Result } from "../../common/adt";
 import {
   Compression,
   PhotometricInterpratation,
@@ -18,7 +18,7 @@ import { DicomObject } from "./DicomObject";
 export type DicomImage = DicomImageGrayScale | DicomImageRgb;
 
 export type DicomImageGrayScale = {
-  _tag: "grayScale";
+  _tag: "GrayScale";
 
   photometricInterpratation: PhotometricInterpratation.Monochrome1 | PhotometricInterpratation.Monochrome2;
   voiLutModule: VoiLutModule;
@@ -31,7 +31,7 @@ export type DicomImageGrayScale = {
   pixelData: PixelDataGrayScale;
 };
 export type DicomImageRgb = {
-  _tag: "rgb";
+  _tag: "Rgb";
 
   pixelSpacing?: PixelSpacing;
 
@@ -42,13 +42,13 @@ export type DicomImageRgb = {
 
 const DicomImageGrayScale = (props: Omit<DicomImageGrayScale, "_tag">): DicomImageGrayScale => {
   return {
-    _tag: "grayScale",
+    _tag: "GrayScale",
     ...props,
   };
 };
 const DicomImageRgb = (props: Omit<DicomImageRgb, "_tag">): DicomImageRgb => {
   return {
-    _tag: "rgb",
+    _tag: "Rgb",
     ...props,
   };
 };
@@ -104,7 +104,7 @@ export const DicomImage = {
     const [compression, endianness] = TransferSyntax_.toCompressionAndEndianness(transferSyntax);
 
     if (compression !== Compression.None) {
-      return err("Compressed images not supported");
+      return Err("Compressed images not supported");
     }
 
     if (
@@ -197,7 +197,7 @@ export const DicomImage = {
       });
     }
 
-    return err("Supported only gray scale and rgb images");
+    return Err("Supported only gray scale and rgb images");
   },
 
   _fromDataForDicomImageGrayScale: ({
@@ -218,17 +218,17 @@ export const DicomImage = {
     rescaleSlope,
   }: DataFofDicomImageGrayScale): Result<DicomImageGrayScale, string> => {
     if (pixelDataVr === "OW" && bitsAllocated !== 16) {
-      return err("Not supported pixelData VR");
+      return Err("Not supported pixelData VR");
     }
     if (highBit + 1 !== bitsStored) {
-      return err("Not supported combination of hightBit and bitsStored");
+      return Err("Not supported combination of hightBit and bitsStored");
     }
     if (photometricInterpratation === PhotometricInterpratation.Monochrome1) {
-      return err("Not supported photometricInterpratation");
+      return Err("Not supported photometricInterpratation");
     }
 
-    const pixelSpacingResult = rawPixelSpacing == null ? ok(undefined) : PixelSpacing.fromString(rawPixelSpacing);
-    if (pixelSpacingResult._tag === "err") {
+    const pixelSpacingResult = rawPixelSpacing == null ? Ok(undefined) : PixelSpacing.fromString(rawPixelSpacing);
+    if (pixelSpacingResult._tag === "Err") {
       return pixelSpacingResult;
     }
     const pixelSpacing = pixelSpacingResult.value;
@@ -241,7 +241,7 @@ export const DicomImage = {
       },
     };
     if (voiLutModule.voiLutFunction !== VoiLutFunction.Linear) {
-      return err("Not supported voiLutFunction");
+      return Err("Not supported voiLutFunction");
     }
 
     const rescale: Rescale = {
@@ -253,20 +253,20 @@ export const DicomImage = {
       pixelRepresentation,
       bitsAllocated,
     ])
-      .with([PixelRepresentation.Unsigned, 8], () => ok(new Uint8Array(pixelData.buffer)))
-      .with([PixelRepresentation.Unsigned, 16], () => ok(new Uint16Array(pixelData.buffer)))
-      .with([PixelRepresentation.Unsigned, 32], () => ok(new Uint32Array(pixelData.buffer)))
-      .with([PixelRepresentation.Signed, 8], () => ok(new Int8Array(pixelData.buffer)))
-      .with([PixelRepresentation.Signed, 16], () => ok(new Int16Array(pixelData.buffer)))
-      .with([PixelRepresentation.Signed, 32], () => ok(new Int32Array(pixelData.buffer)))
-      .with([__, __], () => err("Not supported Bits Allocated"))
+      .with([PixelRepresentation.Unsigned, 8], () => Ok(new Uint8Array(pixelData.buffer)))
+      .with([PixelRepresentation.Unsigned, 16], () => Ok(new Uint16Array(pixelData.buffer)))
+      .with([PixelRepresentation.Unsigned, 32], () => Ok(new Uint32Array(pixelData.buffer)))
+      .with([PixelRepresentation.Signed, 8], () => Ok(new Int8Array(pixelData.buffer)))
+      .with([PixelRepresentation.Signed, 16], () => Ok(new Int16Array(pixelData.buffer)))
+      .with([PixelRepresentation.Signed, 32], () => Ok(new Int32Array(pixelData.buffer)))
+      .with([__, __], () => Err("Not supported Bits Allocated"))
       .exhaustive();
-    if (imagePixelDataResult._tag === "err") {
-      return err(imagePixelDataResult.error);
+    if (imagePixelDataResult._tag === "Err") {
+      return Err(imagePixelDataResult.error);
     }
     const imagePixelData = imagePixelDataResult.value;
 
-    return ok(
+    return Ok(
       DicomImage.GrayScale({
         photometricInterpratation,
 
@@ -295,17 +295,17 @@ export const DicomImage = {
     pixelDataVr, // ToDo: Maybe I should do something with it?
   }: DataForDicomImageRgb): Result<DicomImageRgb, string> => {
     if (bitsAllocated !== 8 || bitsStored !== 8 || highBit !== 7) {
-      return err("Not supported combination of bitsAllocated, bitsStored, highBit");
+      return Err("Not supported combination of bitsAllocated, bitsStored, highBit");
     }
     if (planarConfiguration === PlanarConfiguration.Separated) {
-      return err("Not supported planarConfiguration (separated)");
+      return Err("Not supported planarConfiguration (separated)");
     }
     if (pixelRepresentation === PixelRepresentation.Signed) {
-      return err("Not supported pixelRepresentation");
+      return Err("Not supported pixelRepresentation");
     }
 
-    const pixelSpacingResult = rawPixelSpacing == null ? ok(undefined) : PixelSpacing.fromString(rawPixelSpacing);
-    if (pixelSpacingResult._tag === "err") {
+    const pixelSpacingResult = rawPixelSpacing == null ? Ok(undefined) : PixelSpacing.fromString(rawPixelSpacing);
+    if (pixelSpacingResult._tag === "Err") {
       return pixelSpacingResult;
     }
     const pixelSpacing = pixelSpacingResult.value;
@@ -320,7 +320,7 @@ export const DicomImage = {
         0xff000000;
     }
 
-    return ok(
+    return Ok(
       DicomImage.Rgb({
         pixelSpacing,
 

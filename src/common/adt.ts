@@ -1,27 +1,27 @@
-export type Result<T, E> = ok<T> | err<E>;
-export type ok<T> = {
-  _tag: "ok";
+export type Result<T, E> = Ok<T> | Err<E>;
+export type Ok<T> = {
+  _tag: "Ok";
   value: T;
 };
-export type err<E> = {
-  _tag: "err";
+export type Err<E> = {
+  _tag: "Err";
   error: E;
 };
 
-export const ok = <T>(value: T): ok<T> => {
+export const Ok = <T>(value: T): Ok<T> => {
   return {
-    _tag: "ok",
+    _tag: "Ok",
     value,
   };
 };
-export const err = <E>(error: E): err<E> => {
+export const Err = <E>(error: E): Err<E> => {
   return {
-    _tag: "err",
+    _tag: "Err",
     error,
   };
 };
 
 export const Result = {
-  ok,
-  err,
+  Ok,
+  Err,
 };
