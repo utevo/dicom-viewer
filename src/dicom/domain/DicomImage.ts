@@ -1,6 +1,6 @@
 import { __, match } from "ts-pattern";
 
-import { Err, Ok, Result } from "../../common/adt";
+import { Err, Ok, Result } from "../../common/result";
 import {
   Compression,
   PhotometricInterpratation,
@@ -17,7 +17,7 @@ import { DicomObject } from "./DicomObject";
 
 export type DicomImage = DicomImageGrayScale | DicomImageRgb;
 
-export type DicomImageGrayScale = {
+export type DicomImageGrayScale = Readonly<{
   _tag: "GrayScale";
 
   photometricInterpratation: PhotometricInterpratation.Monochrome1 | PhotometricInterpratation.Monochrome2;
@@ -29,8 +29,8 @@ export type DicomImageGrayScale = {
   rows: number;
   columns: number;
   pixelData: PixelDataGrayScale;
-};
-export type DicomImageRgb = {
+}>;
+export type DicomImageRgb = Readonly<{
   _tag: "Rgb";
 
   pixelSpacing?: PixelSpacing;
@@ -38,7 +38,7 @@ export type DicomImageRgb = {
   rows: number;
   columns: number;
   pixelData: PixelDataRgb;
-};
+}>;
 
 const DicomImageGrayScale = (props: Omit<DicomImageGrayScale, "_tag">): DicomImageGrayScale => {
   return {
@@ -335,10 +335,10 @@ export const DicomImage = {
 type PixelDataGrayScale = Uint8Array | Int8Array | Uint16Array | Int16Array | Uint32Array | Int32Array;
 type PixelDataRgb = Uint32Array;
 
-type Rescale = {
-  readonly slope: number;
-  readonly intercept: number;
-};
+type Rescale = Readonly<{
+  slope: number;
+  intercept: number;
+}>;
 const Rescale = {
   default: (): Rescale => ({
     slope: 1,

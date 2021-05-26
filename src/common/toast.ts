@@ -1,12 +1,12 @@
-import { useToast } from "@chakra-ui/react";
+import { useToast as useChakraToast } from "@chakra-ui/react";
 import { useMemo } from "react";
 
-type Notify = {
+type ToastManager = Readonly<{
   error: (message: string) => void;
-};
+}>;
 
-export const useNotify = (): Notify => {
-  const toast = useToast();
+export const useToast = (): ToastManager => {
+  const toast = useChakraToast();
   return useMemo(
     () => ({
       error: (message: string) => toast({ title: message, status: "error", isClosable: true }),

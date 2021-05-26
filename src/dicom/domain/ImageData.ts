@@ -1,6 +1,6 @@
 import { match } from "ts-pattern";
 
-import { Err, Ok, Result } from "../../common/adt";
+import { Err, Ok, Result } from "../../common/result";
 import { WindowingOffset } from "../browser/common";
 import { PhotometricInterpratation, VoiLutFunction, VoiLutModule } from "./common";
 import { DicomImage, DicomImageGrayScale, DicomImageRgb } from "./DicomImage";

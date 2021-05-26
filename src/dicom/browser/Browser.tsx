@@ -5,24 +5,24 @@ import AutoSizer from "react-virtualized-auto-sizer";
 import { __, match } from "ts-pattern";
 import { v4 as uuid4 } from "uuid";
 
-import { useNotify } from "../../common/notify";
+import { useToast } from "../../common/toast";
 import { DicomImage } from "../domain/DicomImage";
 import { DicomObject, DicomObjectMetadata } from "../domain/DicomObject";
 import { ImageData_ } from "../domain/ImageData";
 import { BrowserInfo } from "./BrowserInfo";
-import { Position, ViewPort, WindowingOffset } from "./common";
+import { Measure, Measures, Position, ViewPort, WindowingOffset } from "./common";
 import { DicomObjectDetails } from "./DicomObjectDetails";
-import { FilesController } from "./Files";
+import { Files } from "./Files";
 import { InputDirectory } from "./InputDirectory";
 import { Tool, ToolBar } from "./Tools";
-import { Measure, Measures, Workspace } from "./Workspace";
+import { Workspace } from "./Workspace";
 
 type Props = {
   className?: string;
 };
 
 export const Browser = ({ className }: Props): React.ReactElement => {
-  const notify = useNotify();
+  const notify = useToast();
 
   const [dicomObjectMetadata, setDicomObjectMetadata] = useState<DicomObjectMetadata>();
   const [dicomImage, setDicomImage] = useState<DicomImage>();
@@ -200,7 +200,7 @@ export const Browser = ({ className }: Props): React.ReactElement => {
       <div className="w-96 flex flex-col m-3 p-1 bg-white rounded-2xl shadow-lg space-y-3 overflow-hidden">
         <InputDirectory className="self-center" onDirectoryHandleChange={setDirectoryHandle} />
         <div className="flex-1 overflow-y-scroll border rounded-xl m-2">
-          <FilesController directoryHandle={directoryHandle} onFileChange={handleFileChange} />
+          <Files directoryHandle={directoryHandle} onFileChange={handleFileChange} />
         </div>
       </div>
       <div className="flex-1 flex flex-col">
@@ -246,10 +246,10 @@ export const Browser = ({ className }: Props): React.ReactElement => {
   );
 };
 
-type Size = {
+type Size = Readonly<{
   width: number;
   height: number;
-};
+}>;
 
 export const calcViewPortDefault = (workspaceSize: Size, imageSize: Size): ViewPort => {
   return {

@@ -9,7 +9,7 @@ type Props = {
   className?: string;
 };
 
-export const FilesController = ({ directoryHandle, onFileChange, className }: Props): React.ReactElement => {
+export const Files = ({ directoryHandle, onFileChange, className }: Props): React.ReactElement => {
   const [directory, setDirectory] = useState<FsDirectory>();
 
   useEffect(() => {
@@ -44,19 +44,19 @@ export const FilesController = ({ directoryHandle, onFileChange, className }: Pr
 
 type FsFile = FsRegularFile | FsDirectory;
 
-type FsRegularFile = {
+type FsRegularFile = Readonly<{
   _tag: "RegularFile";
 
   name: string;
   handle: FileSystemFileHandle;
-};
+}>;
 
-type FsDirectory = {
+type FsDirectory = Readonly<{
   _tag: "Directory";
 
   name: string;
   files: FsFile[];
-};
+}>;
 
 type HaveKindProp = {
   kind: "file" | "directory";

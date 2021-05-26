@@ -1,6 +1,6 @@
 import { __, match } from "ts-pattern";
 
-import { Err, Ok, Result } from "../../common/adt";
+import { Err, Ok, Result } from "../../common/result";
 
 export enum TransferSyntax {
   JPEG2000 = "JPEG2000",
@@ -84,15 +84,15 @@ export const VoiLutFunction_ = {
   default: (): VoiLutFunction => VoiLutFunction.Linear,
 };
 
-export type VoiLutModule = {
+export type VoiLutModule = Readonly<{
   window: VoiLutWindow;
   voiLutFunction: VoiLutFunction;
-};
+}>;
 
-export type VoiLutWindow = {
-  readonly center: number;
-  readonly width: number;
-};
+export type VoiLutWindow = Readonly<{
+  center: number;
+  width: number;
+}>;
 export const VoiLutWindow = {
   default: (): VoiLutWindow => ({
     center: 1024,
@@ -100,10 +100,10 @@ export const VoiLutWindow = {
   }),
 };
 
-export type PixelSpacing = {
-  readonly row: number;
-  readonly column: number;
-};
+export type PixelSpacing = Readonly<{
+  row: number;
+  column: number;
+}>;
 export const PixelSpacing = {
   fromString: (str: string): Result<PixelSpacing, string> => {
     const rawNumbers = str.split("\\");

@@ -1,8 +1,8 @@
-export type ViewPort = {
+export type ViewPort = Readonly<{
   position: Position;
   rotation: number;
   zoom: number;
-};
+}>;
 export const ViewPort = {
   default: (): ViewPort => {
     return {
@@ -13,10 +13,10 @@ export const ViewPort = {
   },
 };
 
-export type Position = {
-  readonly x: number;
-  readonly y: number;
-};
+export type Position = Readonly<{
+  x: number;
+  y: number;
+}>;
 export const Position = {
   add: (vector: Position, otherVector: Position): Position => ({
     x: vector.x + otherVector.x,
@@ -28,10 +28,10 @@ export const Position = {
   }),
 };
 
-export type WindowingOffset = {
+export type WindowingOffset = Readonly<{
   windowCenterOffset: number;
   windowWidthOffset: number;
-};
+}>;
 export const WindowingOffset = {
   default: (): WindowingOffset => {
     return {
@@ -40,3 +40,10 @@ export const WindowingOffset = {
     };
   },
 };
+
+export type Measure = Readonly<{
+  pointPosition: Position;
+  otherPointPosition: Position;
+}>;
+
+export type Measures = Record<string, Measure>;

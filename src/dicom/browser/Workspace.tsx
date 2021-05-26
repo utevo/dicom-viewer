@@ -6,7 +6,7 @@ import { Circle, Group, Image as KonvaImage, Label, Layer, Line, Stage, Tag, Tex
 import { useKey } from "react-use";
 
 import { PixelSpacing } from "../domain/common";
-import { Position, ViewPort } from "./common";
+import { Measure, Measures, Position, ViewPort } from "./common";
 
 type Props = {
   width: number;
@@ -302,11 +302,4 @@ const calcTextPosition = (pointPosition: Position, otherPointPosition: Position,
     ? { x: pointPosition.x - 48 * scale, y: pointPosition.y - 33 * scale }
     : { x: otherPointPosition.x - 48 * scale, y: otherPointPosition.y - 33 * scale };
 
-export type Measure = {
-  pointPosition: Position;
-  otherPointPosition: Position;
-};
-
-export type Measures = Record<string, Measure>;
-
-export type LengthUnit = "px" | "mm";
+type LengthUnit = "px" | "mm";
