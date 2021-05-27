@@ -14,6 +14,9 @@
 
 ## Instruction
 
+Dependencies:
+- [Node.js](https://nodejs.org/)
+
 To deploy this project run
 
 ```bash
