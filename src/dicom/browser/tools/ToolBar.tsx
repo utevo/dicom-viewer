@@ -13,16 +13,7 @@ import {
   RiZoomInLine,
 } from "react-icons/ri";
 
-export enum Tool {
-  Cursor = "CURSOR",
-  Pan = "PAN",
-  Rotate = "ROTATE",
-  Windowing = "WINDOWING",
-  Zoom = "ZOOM",
-  AddMeasure = " ADD_MEASURE",
-  ShowDetails = "SHOW_DETAILS",
-  ResetView = "RESET_VIEW",
-}
+import { Tool } from "./model";
 
 export const ToolBar = ({ tool: selectedTool, onToolClick, className }: Props): React.ReactElement => {
   return (
