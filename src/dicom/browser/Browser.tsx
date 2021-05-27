@@ -236,12 +236,13 @@ export const Browser = ({ className }: Props): React.ReactElement => {
         onClose={() => setIsDicomObjectDetailsOpen(false)}
       />
       {dicomImage && (
-        <BrowserInfo
-          className="fixed bottom-5 right-5"
-          viewPort={viewPort}
-          voiLutModule={dicomImage?._tag === "GrayScale" ? dicomImage.voiLutModule : undefined}
-          windowingOffset={windowingOffset}
-        />
+        <div className="fixed bottom-7" style={{ left: 435 }}>
+          <BrowserInfo
+s            viewPort={viewPort}
+            voiLutModule={dicomImage?._tag === "GrayScale" ? dicomImage.voiLutModule : undefined}
+            windowingOffset={windowingOffset}
+          />
+        </div>
       )}
     </div>
   );

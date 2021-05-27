@@ -1,6 +1,27 @@
-import { Modal, ModalBody, ModalCloseButton, ModalContent, ModalHeader, ModalOverlay } from "@chakra-ui/react";
+import {
+  Box,
+  Drawer,
+  DrawerBody,
+  DrawerCloseButton,
+  DrawerContent,
+  DrawerHeader,
+  DrawerOverlay,
+  Flex,
+  Heading,
+  IconButton,
+  Modal,
+  ModalBody,
+  ModalCloseButton,
+  ModalContent,
+  ModalHeader,
+  ModalOverlay,
+  ScaleFade,
+  Slide,
+  VStack,
+} from "@chakra-ui/react";
 import { capitalCase } from "change-case";
 import React from "react";
+import { RiCloseLine } from "react-icons/ri";
 
 import { DicomObjectMetadata } from "../domain/DicomObject";
 
@@ -11,21 +32,39 @@ type Props = {
 };
 
 export const DicomObjectDetails = ({ dicomObjectMetadata, isOpen, onClose }: Props): React.ReactElement => {
+  // return (
+  //   <Drawer isOpen={isOpen} onClose={onClose} size="sm" useInert={false} closeOnOverlayClick={false}>
+  //     <DrawerContent>
+  //       <DrawerHeader>Details</DrawerHeader>
+  //       <DrawerCloseButton />
+  //       <DrawerBody>
+  //         {dicomObjectMetadata != null ? (
+  //           <DicomObjectDetailsTable dicomObjectMetadata={dicomObjectMetadata} />
+  //         ) : (
+  //           <div className="mb-4 text-center font-medium">No Dicom Image selected</div>
+  //         )}
+  //       </DrawerBody>
+  //     </DrawerContent>
+  //   </Drawer>
+  // );
+
   return (
-    <Modal isOpen={isOpen} onClose={onClose}>
-      <ModalOverlay />
-      <ModalContent>
-        <ModalHeader>Details</ModalHeader>
-        <ModalCloseButton />
-        <ModalBody>
+    <Slide className="h-screen z-50" direction="right" in={isOpen} style={{ width: "400px" }}>
+      <div className="bg-white rounded-2xl border-2 h-full overflow-auto">
+        <button className="absolute right-5 top-5" onClick={onClose}>
+          <RiCloseLine className="w-8 h-8" />
+        </button>
+        <h1 className="text-xl font-semibold my-6 ml-10">Details</h1>
+
+        <div className="mx-3">
           {dicomObjectMetadata != null ? (
             <DicomObjectDetailsTable dicomObjectMetadata={dicomObjectMetadata} />
           ) : (
             <div className="mb-4 text-center font-medium">No Dicom Image selected</div>
           )}
-        </ModalBody>
-      </ModalContent>
-    </Modal>
+        </div>
+      </div>
+    </Slide>
   );
 };
 

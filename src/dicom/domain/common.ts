@@ -53,7 +53,7 @@ export enum PhotometricInterpratation { // DON'T CHANGE VALUES!
   Monochrome1 = "MONOCHROME1",
   Monochrome2 = "MONOCHROME2",
   PaletteColor = "PALETTE COLOR",
-  Rgb = "Rgb",
+  Rgb = "RGB",
   Hsv = "HSV",
   Argb = "ARGB",
   Cmyk = "CMYK",

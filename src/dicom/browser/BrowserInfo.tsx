@@ -29,16 +29,18 @@ export const BrowserInfo = ({ viewPort, voiLutModule, windowingOffset, className
 
   return (
     <table className={clsx("table-fixed bg-white w-80", className)}>
-      {Object.entries(browserInfo)
-        .filter(([_, value]) => value != null)
-        .map(([name, value]) => (
-          <tr key={name}>
-            <td className="border px-4 py-2 text-emerald-600 text-center">{capitalCase(name)}</td>
-            <td className="border px-4 py-2 text-emerald-600 text-center">
-              {typeof value === "object" ? JSON.stringify(value) : String(value)}
-            </td>
-          </tr>
-        ))}
+      <tbody>
+        {Object.entries(browserInfo)
+          .filter(([_, value]) => value != null)
+          .map(([name, value]) => (
+            <tr key={name}>
+              <td className="border px-4 py-2 text-emerald-600 text-center">{capitalCase(name)}</td>
+              <td className="border px-4 py-2 text-emerald-600 text-center">
+                {typeof value === "object" ? JSON.stringify(value) : String(value)}
+              </td>
+            </tr>
+          ))}
+      </tbody>
     </table>
   );
 };
