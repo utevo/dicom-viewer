@@ -2,12 +2,12 @@ import { __, match } from "ts-pattern";
 
 import { Err, Ok, Result } from "../../common/result";
 import {
-  Compression,
-  PhotometricInterpratation,
+  compression,
+  photometricInterpretation,
   PixelRepresentation,
   PixelSpacing,
   PlanarConfiguration,
-  TransferSyntax_,
+  TransferSyntax,
   VoiLutFunction,
   VoiLutFunction_,
   VoiLutModule,
@@ -20,7 +20,9 @@ export type DicomImage = DicomImageGrayScale | DicomImageRgb;
 export type DicomImageGrayScale = Readonly<{
   _tag: "GrayScale";
 
-  photometricInterpratation: PhotometricInterpratation.Monochrome1 | PhotometricInterpratation.Monochrome2;
+  photometricInterpretation:
+    | typeof photometricInterpretation.Monochrome1
+    | typeof photometricInterpretation.Monochrome2;
   voiLutModule: VoiLutModule;
   rescale: Rescale;
 
@@ -54,7 +56,9 @@ const DicomImageRgb = (props: Omit<DicomImageRgb, "_tag">): DicomImageRgb => {
 };
 
 type DataFofDicomImageGrayScale = {
-  photometricInterpratation: PhotometricInterpratation.Monochrome1 | PhotometricInterpratation.Monochrome2;
+  photometricInterpretation:
+    | typeof photometricInterpretation.Monochrome1
+    | typeof photometricInterpretation.Monochrome2;
   pixelRepresentation: PixelRepresentation;
 
   pixelSpacing?: string;
@@ -100,16 +104,16 @@ export const DicomImage = {
   Rgb: DicomImageRgb,
 
   fromDicomObject: (dicomObject: DicomObject): Result<DicomImage, string> => {
-    const transferSyntax = dicomObject.transferSyntax ?? TransferSyntax_.default();
-    const [compression, endianness] = TransferSyntax_.toCompressionAndEndianness(transferSyntax);
+    const transferSyntax = dicomObject.transferSyntax ?? TransferSyntax.default();
+    const [dicomObjectCompression, endianness] = TransferSyntax.toCompressionAndEndianness(transferSyntax);
 
-    if (compression !== Compression.None) {
+    if (dicomObjectCompression !== compression.None) {
       return Err("Compressed images not supported");
     }
 
     if (
-      (dicomObject.photometricInterpratation === PhotometricInterpratation.Monochrome1 ||
-        dicomObject.photometricInterpratation === PhotometricInterpratation.Monochrome2) &&
+      (dicomObject.photometricInterpretation === photometricInterpretation.Monochrome1 ||
+        dicomObject.photometricInterpretation === photometricInterpretation.Monochrome2) &&
       dicomObject.samplePerPixel === 1
     ) {
       const {
@@ -118,7 +122,7 @@ export const DicomImage = {
 
         pixelSpacing,
 
-        photometricInterpratation,
+        photometricInterpretation: photometricInterpratation,
         pixelRepresentation,
 
         bitsAllocated,
@@ -141,7 +145,7 @@ export const DicomImage = {
 
         pixelSpacing,
 
-        photometricInterpratation,
+        photometricInterpretation: photometricInterpratation,
         pixelRepresentation,
 
         bitsAllocated,
@@ -160,7 +164,7 @@ export const DicomImage = {
       });
     }
 
-    if (dicomObject.samplePerPixel === 3 && dicomObject.photometricInterpratation === PhotometricInterpratation.Rgb) {
+    if (dicomObject.samplePerPixel === 3 && dicomObject.photometricInterpretation === "RGB") {
       const {
         planarConfiguration,
 
@@ -204,7 +208,7 @@ export const DicomImage = {
     rows,
     columns,
     pixelSpacing: rawPixelSpacing,
-    photometricInterpratation,
+    photometricInterpretation: photometricInterpretationFromData,
     pixelRepresentation,
     bitsAllocated,
     bitsStored,
@@ -223,8 +227,8 @@ export const DicomImage = {
     if (highBit + 1 !== bitsStored) {
       return Err("Not supported combination of hightBit and bitsStored");
     }
-    if (photometricInterpratation === PhotometricInterpratation.Monochrome1) {
-      return Err("Not supported photometricInterpratation");
+    if (photometricInterpretationFromData === photometricInterpretation.Monochrome1) {
+      return Err("Not supported photometricInterpretation");
     }
 
     const pixelSpacingResult = rawPixelSpacing == null ? Ok(undefined) : PixelSpacing.fromString(rawPixelSpacing);
@@ -268,7 +272,7 @@ export const DicomImage = {
 
     return Ok(
       DicomImage.GrayScale({
-        photometricInterpratation,
+        photometricInterpretation: photometricInterpretationFromData,
 
         pixelSpacing,
 

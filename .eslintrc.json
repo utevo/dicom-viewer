@@ -23,6 +23,7 @@
     "react/react-in-jsx-scope": "off",
     "jsx-a11y/anchor-is-valid": "off",
     "@typescript-eslint/no-unused-vars": "off",
+    "@typescript-eslint/prefer-namespace-keyword": "off",
     "unused-imports/no-unused-imports": "warn",
     "simple-import-sort/imports": "warn"
   },

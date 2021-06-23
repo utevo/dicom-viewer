@@ -1,24 +1,4 @@
-import {
-  Box,
-  Drawer,
-  DrawerBody,
-  DrawerCloseButton,
-  DrawerContent,
-  DrawerHeader,
-  DrawerOverlay,
-  Flex,
-  Heading,
-  IconButton,
-  Modal,
-  ModalBody,
-  ModalCloseButton,
-  ModalContent,
-  ModalHeader,
-  ModalOverlay,
-  ScaleFade,
-  Slide,
-  VStack,
-} from "@chakra-ui/react";
+import { Slide } from "@chakra-ui/react";
 import { capitalCase } from "change-case";
 import React from "react";
 import { RiCloseLine } from "react-icons/ri";

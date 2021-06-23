@@ -2,7 +2,7 @@ import { match } from "ts-pattern";
 
 import { Err, Ok, Result } from "../../common/result";
 import { WindowingOffset } from "../browser/common";
-import { PhotometricInterpratation, VoiLutFunction, VoiLutModule } from "./common";
+import { photometricInterpretation, VoiLutFunction, VoiLutModule } from "./common";
 import { DicomImage, DicomImageGrayScale, DicomImageRgb } from "./DicomImage";
 
 export const ImageData_ = {
@@ -16,8 +16,8 @@ export const ImageData_ = {
     dicomImage: DicomImageGrayScale,
     voiLutModuleOffset: WindowingOffset
   ): Result<ImageData, string> => {
-    if (dicomImage.photometricInterpratation == PhotometricInterpratation.Monochrome1) {
-      return Err(`Not supported Photometric Interpratation (${dicomImage.photometricInterpratation})`);
+    if (dicomImage.photometricInterpretation == photometricInterpretation.Monochrome1) {
+      return Err(`Not supported Photometric Interpratation (${dicomImage.photometricInterpretation})`);
     }
 
     const lutResult = Lut.fromVoiLutModuleAndConfig(dicomImage.voiLutModule, voiLutModuleOffset);

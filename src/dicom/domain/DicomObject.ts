@@ -3,11 +3,10 @@ import { __, match } from "ts-pattern";
 
 import { Err, Ok, Result } from "../../common/result";
 import {
-  PhotometricInterpratation,
+  PhotometricInterpretation,
   PixelRepresentation,
   PlanarConfiguration,
   TransferSyntax,
-  TransferSyntax_,
   VoiLutFunction,
 } from "./common";
 
@@ -34,7 +33,7 @@ export type DicomObject = {
   columns: number;
 
   samplePerPixel: number;
-  photometricInterpratation: PhotometricInterpratation;
+  photometricInterpretation: PhotometricInterpretation;
 
   planarConfiguration?: PlanarConfiguration;
 
@@ -90,7 +89,7 @@ export const DicomObject = {
     const rawTransferSyntax = dataSet.string("x00020010");
     const transferSyntaxResult: Result<TransferSyntax | undefined, string> = match(rawTransferSyntax)
       .with(undefined, () => Ok(undefined))
-      .with(__.string, (transferSyntaxValue) => TransferSyntax_.fromTransferSyntaxUID(transferSyntaxValue))
+      .with(__.string, (transferSyntaxValue) => TransferSyntax.fromTransferSyntaxUID(transferSyntaxValue))
       .exhaustive();
     if (transferSyntaxResult._tag === "Err") {
       return transferSyntaxResult;
@@ -107,12 +106,12 @@ export const DicomObject = {
     const samplePerPixel = dataSet.uint16("x00280002");
     if (samplePerPixel == null) return Err("Dicom Object need to have samplePerPixel");
 
-    const photometricInterpratationValue = dataSet.string("x00280004");
-    if (photometricInterpratationValue == null) {
-      return Err("Dicom Object need to have photometricInterpratation");
+    const photometricInterpretationValue = dataSet.string("x00280004");
+    if (photometricInterpretationValue == null) {
+      return Err("Dicom Object need to have photometricInterpretation");
     }
 
-    const photometricInterpratation = photometricInterpratationValue as PhotometricInterpratation; // ToDo: Need validation
+    const photometricInterpretation = photometricInterpretationValue as PhotometricInterpretation; // ToDo: Need validation
 
     const rawPlanarConfiguration = dataSet.uint16("x00280006") ?? 0;
     const planarConfigurationResult = match(rawPlanarConfiguration)
@@ -202,7 +201,7 @@ export const DicomObject = {
       columns,
 
       samplePerPixel,
-      photometricInterpratation,
+      photometricInterpretation,
 
       planarConfiguration,
 

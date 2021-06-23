@@ -238,7 +238,7 @@ export const Browser = ({ className }: Props): React.ReactElement => {
       {dicomImage && (
         <div className="fixed bottom-7" style={{ left: 435 }}>
           <BrowserInfo
-s            viewPort={viewPort}
+            viewPort={viewPort}
             voiLutModule={dicomImage?._tag === "GrayScale" ? dicomImage.voiLutModule : undefined}
             windowingOffset={windowingOffset}
           />
