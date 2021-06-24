@@ -1,14 +1,14 @@
 import { DataSet, parseDicom } from "dicom-parser";
 import { __, match } from "ts-pattern";
 
-import { Err, Ok, Result } from "../../common/result";
+import { Err, Ok, Result } from "src/common/result";
 import {
   PhotometricInterpretation,
   PixelRepresentation,
   PlanarConfiguration,
   TransferSyntax,
   VoiLutFunction,
-} from "./common";
+} from "src/dicom/domain/common";
 
 export type DicomObject = {
   modality?: string;

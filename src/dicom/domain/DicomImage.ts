@@ -1,6 +1,6 @@
 import { __, match } from "ts-pattern";
 
-import { Err, Ok, Result } from "../../common/result";
+import { Err, Ok, Result } from "src/common/result";
 import {
   Compression,
   PhotometricInterpretation,
@@ -11,8 +11,8 @@ import {
   VoiLutFunction,
   VoiLutModule,
   VoiLutWindow,
-} from "./common";
-import { DicomObject } from "./DicomObject";
+} from "src/dicom/domain/common";
+import { DicomObject } from "src/dicom/domain/DicomObject";
 
 export type DicomImage = DicomImageGrayScale | DicomImageRgb;
 

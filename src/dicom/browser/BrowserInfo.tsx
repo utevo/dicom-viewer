@@ -1,8 +1,8 @@
 import { capitalCase } from "change-case";
 import clsx from "clsx";
 
-import { VoiLutModule, VoiLutWindow } from "../domain/common";
-import { ViewPort, WindowingOffset } from "./common";
+import { ViewPort, WindowingOffset } from "src/dicom/browser/common";
+import { VoiLutModule, VoiLutWindow } from "src/dicom/domain/common";
 
 type Props = {
   viewPort: ViewPort;

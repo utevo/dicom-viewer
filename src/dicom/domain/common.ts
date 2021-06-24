@@ -1,7 +1,7 @@
 import { __, match } from "ts-pattern";
 import { ValueOf } from "ts-pattern/lib/types/helpers";
 
-import { Err, Ok, Result } from "../../common/result";
+import { Err, Ok, Result } from "src/common/result";
 
 const transferSyntax = {
   JPEG2000: "JPEG2000",

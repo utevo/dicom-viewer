@@ -1,4 +1,4 @@
-import { ValueOf } from "../../../common/utility-types";
+import { ValueOf } from "src/common/utility-types";
 
 const tool = {
   Cursor: "CURSOR",

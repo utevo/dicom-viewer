@@ -5,8 +5,8 @@ import React, { useEffect, useState } from "react";
 import { Circle, Group, Image as KonvaImage, Label, Layer, Line, Stage, Tag, Text } from "react-konva";
 import { useKey } from "react-use";
 
-import { PixelSpacing } from "../domain/common";
-import { Measure, Measures, Position, ViewPort } from "./common";
+import { Measure, Measures, Position, ViewPort } from "src/dicom/browser/common";
+import { PixelSpacing } from "src/dicom/domain/common";
 
 type Props = {
   width: number;

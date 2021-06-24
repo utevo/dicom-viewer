@@ -5,18 +5,18 @@ import AutoSizer from "react-virtualized-auto-sizer";
 import { __, match } from "ts-pattern";
 import { v4 as uuid4 } from "uuid";
 
-import { useToast } from "../../common/toast";
-import { DicomImage } from "../domain/DicomImage";
-import { DicomObject, DicomObjectMetadata } from "../domain/DicomObject";
-import { ImageData_ } from "../domain/ImageData";
-import { BrowserInfo } from "./BrowserInfo";
-import { Measure, Measures, Position, ViewPort, WindowingOffset } from "./common";
-import { DicomObjectDetails } from "./DicomObjectDetails";
-import { Files } from "./Files";
-import { InputDirectory } from "./InputDirectory";
-import { Tool } from "./tools/domain";
-import { ToolBar } from "./tools/ToolBar";
-import { Workspace } from "./Workspace";
+import { useToast } from "src/common/toast";
+import { BrowserInfo } from "src/dicom/browser/BrowserInfo";
+import { Measure, Measures, Position, ViewPort, WindowingOffset } from "src/dicom/browser/common";
+import { DicomObjectDetails } from "src/dicom/browser/DicomObjectDetails";
+import { Files } from "src/dicom/browser/Files";
+import { InputDirectory } from "src/dicom/browser/InputDirectory";
+import { Tool } from "src/dicom/browser/tools/domain";
+import { ToolBar } from "src/dicom/browser/tools/ToolBar";
+import { Workspace } from "src/dicom/browser/Workspace";
+import { DicomImage } from "src/dicom/domain/DicomImage";
+import { DicomObject, DicomObjectMetadata } from "src/dicom/domain/DicomObject";
+import { ImageData } from "src/dicom/domain/ImageData";
 
 type Props = {
   className?: string;
@@ -56,7 +56,7 @@ export const Browser = ({ className }: Props): React.ReactElement => {
     if (dicomImage == null) {
       return;
     }
-    const imageDataResult = ImageData_.fromDicomImage(dicomImage, windowingOffset);
+    const imageDataResult = ImageData.fromDicomImage(dicomImage, windowingOffset);
     if (imageDataResult._tag === "Err") {
       notify.error(imageDataResult.error);
       return;

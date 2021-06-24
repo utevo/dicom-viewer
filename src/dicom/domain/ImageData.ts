@@ -1,15 +1,16 @@
 import { match } from "ts-pattern";
 
-import { Err, Ok, Result } from "../../common/result";
-import { WindowingOffset } from "../browser/common";
-import { PhotometricInterpretation, VoiLutFunction, VoiLutModule } from "./common";
-import { DicomImage, DicomImageGrayScale, DicomImageRgb } from "./DicomImage";
+import { Err, Ok, Result } from "src/common/result";
+import { WindowingOffset } from "src/dicom/browser/common";
+import { PhotometricInterpretation, VoiLutFunction, VoiLutModule } from "src/dicom/domain/common";
+import { DicomImage, DicomImageGrayScale, DicomImageRgb } from "src/dicom/domain/DicomImage";
 
-export const ImageData_ = {
+export type ImageData = globalThis.ImageData;
+export const ImageData = {
   fromDicomImage: (dicomImage: DicomImage, voiLutModuleOffset: WindowingOffset): Result<ImageData, string> =>
     match<DicomImage, Result<ImageData, string>>(dicomImage)
-      .with({ _tag: "GrayScale" }, (dicomImage) => ImageData_._fromDicomImageGrayScale(dicomImage, voiLutModuleOffset))
-      .with({ _tag: "Rgb" }, (dicomImage) => ImageData_._fromDicomImageRgb(dicomImage))
+      .with({ _tag: "GrayScale" }, (dicomImage) => ImageData._fromDicomImageGrayScale(dicomImage, voiLutModuleOffset))
+      .with({ _tag: "Rgb" }, (dicomImage) => ImageData._fromDicomImageRgb(dicomImage))
       .exhaustive(),
 
   _fromDicomImageGrayScale: (
@@ -26,7 +27,7 @@ export const ImageData_ = {
     }
     const lut = lutResult.value;
 
-    const imageData = new ImageData(dicomImage.columns, dicomImage.rows);
+    const imageData = new globalThis.ImageData(dicomImage.columns, dicomImage.rows);
     for (let idx = 0; idx < dicomImage.pixelData.length; idx += 1) {
       const value = lut(dicomImage.pixelData[idx] * dicomImage.rescale.slope + dicomImage.rescale.intercept);
       imageData.data[4 * idx] = value;
@@ -39,7 +40,7 @@ export const ImageData_ = {
   },
 
   _fromDicomImageRgb: (dicomImage: DicomImageRgb): Result<ImageData, string> => {
-    const imageData = new ImageData(
+    const imageData = new globalThis.ImageData(
       new Uint8ClampedArray(dicomImage.pixelData.buffer),
       dicomImage.columns,
       dicomImage.rows

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { RiChromeLine } from "react-icons/ri";
 
-import { Browser, checkIfIsBrowserSupported } from "../dicom/browser/Browser";
+import { Browser, checkIfIsBrowserSupported } from "src/dicom/browser/Browser";
 
 const BrowserPage = (): React.ReactElement => {
   const [isBrowserSupported, setIsBrowserSupported] = useState<boolean>(true);
