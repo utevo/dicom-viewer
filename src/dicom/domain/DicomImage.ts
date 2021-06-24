@@ -2,14 +2,13 @@ import { __, match } from "ts-pattern";
 
 import { Err, Ok, Result } from "../../common/result";
 import {
-  compression,
-  photometricInterpretation,
+  Compression,
+  PhotometricInterpretation,
   PixelRepresentation,
   PixelSpacing,
   PlanarConfiguration,
   TransferSyntax,
   VoiLutFunction,
-  VoiLutFunction_,
   VoiLutModule,
   VoiLutWindow,
 } from "./common";
@@ -21,8 +20,8 @@ export type DicomImageGrayScale = Readonly<{
   _tag: "GrayScale";
 
   photometricInterpretation:
-    | typeof photometricInterpretation.Monochrome1
-    | typeof photometricInterpretation.Monochrome2;
+    | typeof PhotometricInterpretation.Monochrome1
+    | typeof PhotometricInterpretation.Monochrome2;
   voiLutModule: VoiLutModule;
   rescale: Rescale;
 
@@ -57,8 +56,8 @@ const DicomImageRgb = (props: Omit<DicomImageRgb, "_tag">): DicomImageRgb => {
 
 type DataFofDicomImageGrayScale = {
   photometricInterpretation:
-    | typeof photometricInterpretation.Monochrome1
-    | typeof photometricInterpretation.Monochrome2;
+    | typeof PhotometricInterpretation.Monochrome1
+    | typeof PhotometricInterpretation.Monochrome2;
   pixelRepresentation: PixelRepresentation;
 
   pixelSpacing?: string;
@@ -107,13 +106,13 @@ export const DicomImage = {
     const transferSyntax = dicomObject.transferSyntax ?? TransferSyntax.default();
     const [dicomObjectCompression, endianness] = TransferSyntax.toCompressionAndEndianness(transferSyntax);
 
-    if (dicomObjectCompression !== compression.None) {
+    if (dicomObjectCompression !== Compression.None) {
       return Err("Compressed images not supported");
     }
 
     if (
-      (dicomObject.photometricInterpretation === photometricInterpretation.Monochrome1 ||
-        dicomObject.photometricInterpretation === photometricInterpretation.Monochrome2) &&
+      (dicomObject.photometricInterpretation === PhotometricInterpretation.Monochrome1 ||
+        dicomObject.photometricInterpretation === PhotometricInterpretation.Monochrome2) &&
       dicomObject.samplePerPixel === 1
     ) {
       const {
@@ -227,7 +226,7 @@ export const DicomImage = {
     if (highBit + 1 !== bitsStored) {
       return Err("Not supported combination of hightBit and bitsStored");
     }
-    if (photometricInterpretationFromData === photometricInterpretation.Monochrome1) {
+    if (photometricInterpretationFromData === PhotometricInterpretation.Monochrome1) {
       return Err("Not supported photometricInterpretation");
     }
 
@@ -238,7 +237,7 @@ export const DicomImage = {
     const pixelSpacing = pixelSpacingResult.value;
 
     const voiLutModule: VoiLutModule = {
-      voiLutFunction: voiLutFunction ?? VoiLutFunction_.default(),
+      voiLutFunction: voiLutFunction ?? VoiLutFunction.default(),
       window: {
         center: windowCenter ?? VoiLutWindow.default().center,
         width: windowWidth ?? VoiLutWindow.default().width,

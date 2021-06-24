@@ -12,8 +12,8 @@ const transferSyntax = {
   UncompressedBE: "UncompressedBE",
 } as const;
 export type TransferSyntax = ValueOf<typeof transferSyntax>;
-
 export const TransferSyntax = {
+  ...transferSyntax,
   default: (): TransferSyntax => "UncompressedLE",
 
   fromTransferSyntaxUID: (transferSyntax: string): Result<TransferSyntax, string> =>
@@ -29,19 +29,20 @@ export const TransferSyntax = {
 
   toCompressionAndEndianness: (transferSyntax: TransferSyntax): [Compression, Endianness] =>
     match<TransferSyntax, [Compression, Endianness]>(transferSyntax)
-      .with("UncompressedBE", () => [compression.None, "BigEndian"])
-      .with("UncompressedLE", () => [compression.None, "LittleEndian"])
-      .with("DecodeRLE", () => [compression.Rle, "LittleEndian"])
-      .with("JPEGLossless", () => [compression.JpegLossless, "LittleEndian"])
-      .with("JPEG2000", () => [compression.Jpeg2000, "LittleEndian"])
-      .with("JPEGBaseline", () => [compression.JpegBaseline, "LittleEndian"])
+      .with("UncompressedBE", () => [Compression.None, "BigEndian"])
+      .with("UncompressedLE", () => [Compression.None, "LittleEndian"])
+      .with("DecodeRLE", () => [Compression.Rle, "LittleEndian"])
+      .with("JPEGLossless", () => [Compression.JpegLossless, "LittleEndian"])
+      .with("JPEG2000", () => [Compression.Jpeg2000, "LittleEndian"])
+      .with("JPEGBaseline", () => [Compression.JpegBaseline, "LittleEndian"])
       .exhaustive(),
 };
 
 export const endianness = { LittleEndian: "LittleEndian", BigEndian: "BigEndian" } as const;
 export type Endianness = ValueOf<typeof endianness>;
+export const Endianness = { ...endianness };
 
-export const compression = {
+const compression = {
   None: "NONE",
   JpegLossless: "JPEG_LOSSLESS",
   JpegBaseline: "JPEG_BASELINE",
@@ -49,8 +50,9 @@ export const compression = {
   Rle: "RLE",
 } as const;
 export type Compression = ValueOf<typeof compression>;
+export const Compression = { ...compression };
 
-export const photometricInterpretation = {
+const photometricInterpretation = {
   Monochrome1: "MONOCHROME1",
   Monochrome2: "MONOCHROME2",
   Palette: "PALETTE COLOR",
@@ -66,23 +68,30 @@ export const photometricInterpretation = {
   YbrRct: "YBR_RCT",
 } as const;
 export type PhotometricInterpretation = ValueOf<typeof photometricInterpretation>;
+export const PhotometricInterpretation = { ...photometricInterpretation };
 
-export enum PixelRepresentation {
-  Unsigned = "UNSIGNED",
-  Signed = "SIGNED",
-}
+const pixelRepresentation = {
+  Unsigned: "UNSIGNED",
+  Signed: "SIGNED",
+} as const;
+export type PixelRepresentation = ValueOf<typeof pixelRepresentation>;
+export const PixelRepresentation = { ...pixelRepresentation };
 
-export enum PlanarConfiguration {
-  Interlaced = 0,
-  Separated = 1,
-}
+const planarConfiguration = {
+  Interlaced: 0,
+  Separated: 1,
+} as const;
+export type PlanarConfiguration = ValueOf<typeof planarConfiguration>;
+export const PlanarConfiguration = { ...planarConfiguration };
 
-export enum VoiLutFunction {
-  Linear = "LINEAR",
-  LinearExact = "LINEAR_EXACT",
-  Sigmoid = "SIGMOID",
-}
-export const VoiLutFunction_ = {
+const voiLutFunction = {
+  Linear: "LINEAR",
+  LinearExact: "LINEAR_EXACT",
+  Sigmoid: "SIGMOID",
+} as const;
+export type VoiLutFunction = ValueOf<typeof voiLutFunction>;
+export const VoiLutFunction = {
+  ...voiLutFunction,
   default: (): VoiLutFunction => VoiLutFunction.Linear,
 };
 

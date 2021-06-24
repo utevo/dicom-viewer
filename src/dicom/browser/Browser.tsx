@@ -14,7 +14,7 @@ import { Measure, Measures, Position, ViewPort, WindowingOffset } from "./common
 import { DicomObjectDetails } from "./DicomObjectDetails";
 import { Files } from "./Files";
 import { InputDirectory } from "./InputDirectory";
-import { Tool, Tool_ } from "./tools/model";
+import { Tool } from "./tools/domain";
 import { ToolBar } from "./tools/ToolBar";
 import { Workspace } from "./Workspace";
 
@@ -30,7 +30,7 @@ export const Browser = ({ className }: Props): React.ReactElement => {
   const [imageData, setImageData] = useState<ImageData>();
   const [viewPort, setViewPort] = useState<ViewPort>(ViewPort.default());
   const [windowingOffset, setWindowingOffset] = useState<WindowingOffset>(WindowingOffset.default());
-  const [tool, setTool] = useState<Tool>(Tool_.default());
+  const [tool, setTool] = useState<Tool>(Tool.default());
   const [mouseDown, setMouseDown] = useState<boolean>(false);
   const [prevMousePosition, setPrevMousePosition] = useState<Position>({ x: 0, y: 0 });
   const [workspaceSize, setWorkspaceSize] = useState<Size>({ width: 0, height: 0 });

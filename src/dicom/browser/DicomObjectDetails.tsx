@@ -12,22 +12,6 @@ type Props = {
 };
 
 export const DicomObjectDetails = ({ dicomObjectMetadata, isOpen, onClose }: Props): React.ReactElement => {
-  // return (
-  //   <Drawer isOpen={isOpen} onClose={onClose} size="sm" useInert={false} closeOnOverlayClick={false}>
-  //     <DrawerContent>
-  //       <DrawerHeader>Details</DrawerHeader>
-  //       <DrawerCloseButton />
-  //       <DrawerBody>
-  //         {dicomObjectMetadata != null ? (
-  //           <DicomObjectDetailsTable dicomObjectMetadata={dicomObjectMetadata} />
-  //         ) : (
-  //           <div className="mb-4 text-center font-medium">No Dicom Image selected</div>
-  //         )}
-  //       </DrawerBody>
-  //     </DrawerContent>
-  //   </Drawer>
-  // );
-
   return (
     <Slide className="h-screen z-50" direction="right" in={isOpen} style={{ width: "400px" }}>
       <div className="bg-white rounded-2xl border-2 h-full overflow-auto">
