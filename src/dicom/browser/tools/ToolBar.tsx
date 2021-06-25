@@ -1,5 +1,5 @@
 import { Tooltip } from "@chakra-ui/react";
-import clsx from "clsx";
+import cn from "clsx";
 import React from "react";
 import { IconType } from "react-icons";
 import {
@@ -18,7 +18,7 @@ import { Tool } from "src/dicom/browser/tools/domain";
 export const ToolBar = ({ tool: selectedTool, onToolClick, className }: Props): React.ReactElement => {
   return (
     <div
-      className={clsx(
+      className={cn(
         "flex flex-row justify-center space-x-2 m-3 p-2 bg-white rounded-2xl shadow-lg divide-x divide-solid",
         className
       )}
@@ -31,7 +31,7 @@ export const ToolBar = ({ tool: selectedTool, onToolClick, className }: Props): 
                 <Tooltip className="transition duration-150 ease-in-out hover:scale-125" hasArrow label={label}>
                   <span>
                     {icon({
-                      className: clsx(
+                      className: cn(
                         "w-12 h-12 transition duration-150 ease-in-out transform hover:scale-125",
                         selectedTool === tool && "border-4 border-red-600 rounded-xl"
                       ),

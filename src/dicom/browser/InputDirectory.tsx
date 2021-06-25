@@ -1,4 +1,4 @@
-import clsx from "clsx";
+import cn from "clsx";
 
 type Props = {
   onDirectoryHandleChange: (newDirectoryHandle: FileSystemDirectoryHandle) => void;
@@ -18,7 +18,7 @@ export function InputDirectory({ onDirectoryHandleChange, className }: Props): R
 
   return (
     <button
-      className={clsx(
+      className={cn(
         "font-bold text-lg py-2 px-6 mt-2 shadow-lg rounded-full bg-blue-500 text-white align-middle",
         className
       )}

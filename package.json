@@ -8,7 +8,7 @@
     "build": "next build",
     "export": "next export",
     "start": "next start",
-    "ts-check": "npx tsc --noEmit",
+    "ts-check": "tsc --noEmit",
     "lint-check": "eslint 'src/**/*.{ts,tsx,js,jsx}' --max-warnings 0",
     "lint-fix": "eslint --fix 'src/**/*.{ts,tsx,js,jsx}'",
     "format-check": "prettier --check 'src/**/*.{ts,tsx,js,jsx}'",

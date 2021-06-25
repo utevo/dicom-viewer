@@ -1,5 +1,5 @@
 import { capitalCase } from "change-case";
-import clsx from "clsx";
+import cn from "clsx";
 
 import { ViewPort, WindowingOffset } from "src/dicom/browser/common";
 import { VoiLutModule, VoiLutWindow } from "src/dicom/domain/common";
@@ -28,7 +28,7 @@ export const BrowserInfo = ({ viewPort, voiLutModule, windowingOffset, className
   };
 
   return (
-    <table className={clsx("table-fixed bg-white w-80", className)}>
+    <table className={cn("table-fixed bg-white w-80", className)}>
       <tbody>
         {Object.entries(browserInfo)
           .filter(([_, value]) => value != null)

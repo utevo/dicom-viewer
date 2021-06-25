@@ -1,5 +1,5 @@
 import { Accordion, AccordionButton, AccordionIcon, AccordionItem, AccordionPanel } from "@chakra-ui/react";
-import clsx from "clsx";
+import cn from "clsx";
 import React, { useEffect, useState } from "react";
 
 type Props = {
@@ -34,11 +34,7 @@ export const Files = ({ directoryHandle, onFileChange, className }: Props): Reac
   }
 
   return (
-    <DirectoryComponent
-      className={clsx(className)}
-      directory={directory}
-      onSelectRegularFile={handleSelectRegularFile}
-    />
+    <DirectoryComponent className={cn(className)} directory={directory} onSelectRegularFile={handleSelectRegularFile} />
   );
 };
 
@@ -89,7 +85,7 @@ const DirectoryComponent = ({
   className,
 }: DirectoryComponentProps): React.ReactElement => {
   return (
-    <Accordion className={clsx(className)} allowMultiple>
+    <Accordion className={cn(className)} allowMultiple>
       <AccordionItem border={0} className="border-0">
         <AccordionButton className="font-semibold text-sm border-b">
           <div className="flex-1 text-left">{directory.name}</div>
@@ -131,7 +127,7 @@ const RegularFileComponent = ({
 }: RegularFileComponentProps): React.ReactElement => {
   return (
     <button
-      className={clsx("text-sm text-left pl-4 truncate overflow-ellipsis", className)}
+      className={cn("text-sm text-left pl-4 truncate overflow-ellipsis", className)}
       onClick={() => onSelectRegularFile(regularFile)}
     >
       {regularFile.name}
