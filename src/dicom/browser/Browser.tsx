@@ -7,16 +7,16 @@ import { v4 as uuid4 } from "uuid";
 
 import { useToast } from "src/common/toast";
 import { BrowserInfo } from "src/dicom/browser/BrowserInfo";
-import { Measure, Measures, Position, ViewPort, WindowingOffset } from "src/dicom/browser/common";
 import { DicomObjectDetails } from "src/dicom/browser/DicomObjectDetails";
 import { Files } from "src/dicom/browser/Files";
 import { InputDirectory } from "src/dicom/browser/InputDirectory";
-import { Tool } from "src/dicom/browser/tools/domain";
+import { Tool } from "src/dicom/browser/tools/model";
 import { ToolBar } from "src/dicom/browser/tools/ToolBar";
+import { Measure, Measures, Position, ViewPort, WindowingOffset } from "src/dicom/browser/utils";
 import { Workspace } from "src/dicom/browser/Workspace";
-import { DicomImage } from "src/dicom/domain/DicomImage";
-import { DicomObject, DicomObjectMetadata } from "src/dicom/domain/DicomObject";
-import { ImageData } from "src/dicom/domain/ImageData";
+import { DicomImage } from "src/dicom/model/DicomImage";
+import { DicomObject, DicomObjectMetadata } from "src/dicom/model/DicomObject";
+import { ImageData } from "src/dicom/model/ImageData";
 
 type Props = {
   className?: string;

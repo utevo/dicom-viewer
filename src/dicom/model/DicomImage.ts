@@ -11,8 +11,8 @@ import {
   VoiLutFunction,
   VoiLutModule,
   VoiLutWindow,
-} from "src/dicom/domain/common";
-import { DicomObject } from "src/dicom/domain/DicomObject";
+} from "src/dicom/model/attributes";
+import { DicomObject } from "src/dicom/model/DicomObject";
 
 export type DicomImage = DicomImageGrayScale | DicomImageRgb;
 

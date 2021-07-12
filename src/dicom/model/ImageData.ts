@@ -1,9 +1,9 @@
 import { match } from "ts-pattern";
 
 import { Err, Ok, Result } from "src/common/result";
-import { WindowingOffset } from "src/dicom/browser/common";
-import { PhotometricInterpretation, VoiLutFunction, VoiLutModule } from "src/dicom/domain/common";
-import { DicomImage, DicomImageGrayScale, DicomImageRgb } from "src/dicom/domain/DicomImage";
+import { WindowingOffset } from "src/dicom/browser/utils";
+import { PhotometricInterpretation, VoiLutFunction, VoiLutModule } from "src/dicom/model/attributes";
+import { DicomImage, DicomImageGrayScale, DicomImageRgb } from "src/dicom/model/DicomImage";
 
 export type ImageData = globalThis.ImageData;
 export const ImageData = {

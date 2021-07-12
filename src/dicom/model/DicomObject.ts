@@ -8,7 +8,7 @@ import {
   PlanarConfiguration,
   TransferSyntax,
   VoiLutFunction,
-} from "src/dicom/domain/common";
+} from "src/dicom/model/attributes";
 
 export type DicomObject = {
   modality?: string;

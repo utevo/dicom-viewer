@@ -3,7 +3,7 @@ import { capitalCase } from "change-case";
 import React from "react";
 import { RiCloseLine } from "react-icons/ri";
 
-import { DicomObjectMetadata } from "src/dicom/domain/DicomObject";
+import { DicomObjectMetadata } from "src/dicom/model/DicomObject";
 
 type Props = {
   dicomObjectMetadata?: DicomObjectMetadata;

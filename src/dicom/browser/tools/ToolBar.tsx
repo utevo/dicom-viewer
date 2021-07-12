@@ -13,7 +13,7 @@ import {
   RiZoomInLine,
 } from "react-icons/ri";
 
-import { Tool } from "src/dicom/browser/tools/domain";
+import { Tool } from "src/dicom/browser/tools/model";
 
 export const ToolBar = ({ tool: selectedTool, onToolClick, className }: Props): React.ReactElement => {
   return (

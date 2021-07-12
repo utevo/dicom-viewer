@@ -1,8 +1,8 @@
 import { capitalCase } from "change-case";
 import cn from "clsx";
 
-import { ViewPort, WindowingOffset } from "src/dicom/browser/common";
-import { VoiLutModule, VoiLutWindow } from "src/dicom/domain/common";
+import { ViewPort, WindowingOffset } from "src/dicom/browser/utils";
+import { VoiLutModule, VoiLutWindow } from "src/dicom/model/attributes";
 
 type Props = {
   viewPort: ViewPort;
@@ -24,7 +24,7 @@ export const BrowserInfo = ({ viewPort, voiLutModule, windowingOffset, className
   const browserInfo = {
     rotation: `${viewPort.rotation % 360}°`,
     zoom: `${viewPort.zoom.toFixed(2)}`,
-    ...(window && { window: `[${window.center.toFixed(0)}, ${window.width.toFixed(0)}]` }),
+    ...(window && { "window center": window.center.toFixed(0), "window width" : window.width.toFixed(0) }),
   };
 
   return (
