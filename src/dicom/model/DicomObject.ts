@@ -60,7 +60,7 @@ export const DicomObject = {
   fromFile: async (file: File): Promise<Result<DicomObject, string>> => {
     const arrayBuffer = await file.arrayBuffer();
     const byteArray = new Uint8Array(arrayBuffer);
-    let dataSet;
+    let dataSet: DataSet;
     try {
       dataSet = parseDicom(byteArray);
     } catch (e) {
