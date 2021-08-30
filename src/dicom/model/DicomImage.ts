@@ -107,7 +107,7 @@ export const DicomImage = {
     const [dicomObjectCompression, endianness] = TransferSyntax.toCompressionAndEndianness(transferSyntax);
 
     if (dicomObjectCompression !== Compression.None) {
-      return Err("Compressed images not supported");
+      return Err(`Compression ${dicomObjectCompression} is not supported`);
     }
 
     if (
