@@ -121,7 +121,7 @@ export const DicomImage = {
 
         pixelSpacing,
 
-        photometricInterpretation: photometricInterpratation,
+        photometricInterpretation,
         pixelRepresentation,
 
         bitsAllocated,
@@ -144,7 +144,7 @@ export const DicomImage = {
 
         pixelSpacing,
 
-        photometricInterpretation: photometricInterpratation,
+        photometricInterpretation,
         pixelRepresentation,
 
         bitsAllocated,
