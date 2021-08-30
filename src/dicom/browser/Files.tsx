@@ -68,8 +68,12 @@ const directoryFromDirectoryHandle = async (directoryHandle: FileSystemDirectory
       files.push(await directoryFromDirectoryHandle(handle as FileSystemDirectoryHandle));
     }
   }
+  const sortedFilteredFiles = files.filter((file) => !checkIfFileToIgnore(file)).sort((a, b) => a.name >= b.name ? 1 : -1)
+  return { _tag: "Directory", name: directoryHandle.name, files: sortedFilteredFiles };
+};
 
-  return { _tag: "Directory", name: directoryHandle.name, files };
+const checkIfFileToIgnore = (file: FsFile) => {
+  return file.name[0] === ".";
 };
 
 type DirectoryComponentProps = {
