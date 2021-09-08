@@ -1,5 +1,5 @@
 
-# dicom-browser
+# dicom-viewer
 
 🩺 Elegant DICOM browser created using web technologies
 
