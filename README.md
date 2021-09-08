@@ -1,7 +1,7 @@
 
 # dicom-viewer
 
-🩺 Elegant DICOM browser created using web technologies
+🩺 Elegant DICOM viewer created using web technologies
 
 ## Tech Stack
 
